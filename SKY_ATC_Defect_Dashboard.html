@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SKY ATC - Defect Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;background:#f0f4f8;color:#1a1a2e;}
+.hdr{background:#2d1b69;color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.hdr h1{font-size:15px;font-weight:500;}
+.hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ts{font-size:11px;opacity:.6;}
+.ubar{background:#5b21b6;padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.ubar label{font-size:12px;color:#c4b5fd;font-weight:500;}
+.ubtn{font-size:12px;padding:6px 14px;border-radius:5px;cursor:pointer;border:1px solid #7c3aed;background:rgba(124,58,237,0.25);color:#e9d5ff;font-weight:500;font-family:inherit;white-space:nowrap;}
+.ubtn:hover{background:rgba(124,58,237,0.45);}
+.data-as-on{font-size:12px;font-weight:600;color:#fff;background:rgba(0,0,0,0.2);padding:5px 14px;border-radius:5px;border:1px solid rgba(255,255,255,0.15);white-space:nowrap;}
+.ubar input[type=file]{font-size:12px;color:#e2e8f0;background:transparent;border:1px solid #7c3aed;border-radius:5px;padding:4px 8px;cursor:pointer;}
+.btn{font-size:12px;padding:6px 14px;border-radius:5px;cursor:pointer;border:none;font-weight:500;font-family:inherit;}
+.bg{background:#059669;color:#fff;} .bg:hover{background:#047857;}
+.bs{background:#64748b;color:#fff;} .bs:hover{background:#475569;}
+.bp{background:#7c3aed;color:#fff;} .bp:hover{background:#6d28d9;}
+.bl{background:#6d28d9;color:#fff;} .bl:hover{background:#5b21b6;}
+.bx{background:#f8fafc;color:#475569;border:1px solid #cbd5e1;} .bx:hover{background:#e2e8f0;}
+.umsg{font-size:11px;padding:4px 10px;border-radius:4px;}
+.uok{background:#d1fae5;color:#065f46;} .uerr{background:#fee2e2;color:#991b1b;}
+.hint{font-size:11px;color:#64748b;}
+.tab-nav{background:#fff;border-bottom:2px solid #e2e8f0;display:flex;align-items:center;gap:0;padding:0 24px;}
+.tab-btn{font-size:13px;font-weight:500;padding:11px 20px;cursor:pointer;border:none;background:none;
+  color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;transition:color .15s;}
+.tab-btn:hover{color:#4c1d95;}
+.tab-btn.active{color:#4c1d95;border-bottom-color:#4c1d95;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+
+.cfg-toggle:hover{color:#4c1d95;}
+
+
+.cfg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:10px;}
+.cfg-group{background:#fff;border:1px solid #DDD6FE;border-radius:8px;padding:12px 14px;}
+.cfg-group-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#5b21b6;margin-bottom:8px;}
+.cfg-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.cfg-tag{font-size:11px;padding:3px 10px;border-radius:20px;background:#EDE9FE;color:#4c1d95;
+  display:flex;align-items:center;gap:5px;cursor:default;}
+.cfg-tag .rm{cursor:pointer;font-size:13px;line-height:1;color:#7c3aed;font-weight:700;}
+.cfg-tag .rm:hover{color:#dc2626;}
+.cfg-add{display:flex;gap:6px;margin-top:8px;}
+.cfg-add input{flex:1;font-size:11px;padding:4px 8px;border:1px solid #DDD6FE;border-radius:5px;
+  color:#1a1a2e;font-family:inherit;background:#fff;}
+.cfg-add button{font-size:11px;padding:4px 10px;border-radius:5px;background:#5b21b6;color:#fff;
+  border:none;cursor:pointer;font-family:inherit;}
+.cfg-add button:hover{background:#4c1d95;}
+.cfg-save{font-size:12px;padding:6px 16px;border-radius:5px;background:#059669;color:#fff;
+  border:none;cursor:pointer;font-weight:500;font-family:inherit;}
+.cfg-save:hover{background:#047857;}
+.cfg-reset-lnk{font-size:11px;color:#64748b;cursor:pointer;text-decoration:underline;margin-left:10px;}
+.tbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 24px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+.ms-wrap{position:relative;display:inline-block;}
+.ms-btn{font-size:12px;padding:5px 26px 5px 10px;border:1px solid #cbd5e1;border-radius:5px;
+  background:#fff;color:#1a1a2e;cursor:pointer;min-width:120px;text-align:left;
+  font-family:inherit;white-space:nowrap;position:relative;}
+.ms-btn::after{content:'\25BE';position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  color:#64748b;font-size:11px;pointer-events:none;}
+.ms-btn.has-sel{border-color:#5b21b6;color:#4c1d95;background:#F5F3FF;}
+.ms-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:200px;max-width:280px;
+  background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.12);
+  z-index:500;padding:6px 0;max-height:280px;overflow-y:auto;}
+.ms-dropdown.open{display:block;}
+.ms-option{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:#1a1a2e;}
+.ms-option:hover{background:#F5F3FF;}
+.ms-option input[type=checkbox]{width:14px;height:14px;accent-color:#5b21b6;cursor:pointer;flex-shrink:0;}
+.ms-option label{cursor:pointer;flex:1;}
+.ms-divider{height:1px;background:#e2e8f0;margin:4px 0;}
+.ms-all{font-weight:600;color:#5b21b6;}
+.ms-count{display:inline-block;font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px;
+  background:#5b21b6;color:#fff;margin-left:4px;}
+.tbar label{font-size:11px;color:#64748b;margin-right:3px;}
+.tbar select{font-size:12px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;color:#1a1a2e;cursor:pointer;}
+.main{padding:16px 24px;}
+.sbar{background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:14px 24px;margin-bottom:14px;}
+.sbar b{color:#1e3a5f;font-weight:600;}
+.sevtiles{margin-bottom:14px;}
+.stile{border-radius:10px;padding:14px 16px;border:1px solid;}
+.s1{background:#FCEBEB;border-color:#F09595;} .s1 *{color:#791F1F;}
+.s2{background:#FAEEDA;border-color:#EF9F27;} .s2 *{color:#633806;}
+.s3{background:#E6F1FB;border-color:#85B7EB;} .s3 *{color:#0C447C;}
+.tlbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.tnum{font-size:32px;font-weight:500;line-height:1;}
+.tsub{font-size:11px;margin-top:4px;line-height:1.6;}
+.crow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px;}
+.ccard{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;}
+.ctit{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:8px;}
+.leg{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:7px;font-size:10px;color:#1a1a2e;}
+.leg span{display:flex;align-items:center;gap:3px;}
+.ld{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+.shdr{font-size:13px;font-weight:600;color:#1a1a2e;margin:0 0 7px;}
+.tcard{background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:14px;}
+.twrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:11.5px;}
+th{background:#BFE4F0;color:#0B4A5A;font-weight:600;padding:6px 9px;white-space:nowrap;border:1px solid #93cfe0;text-align:left;}
+td{padding:5px 9px;border:0.5px solid #e2e8f0;white-space:nowrap;color:#1a1a2e;}
+th.r{text-align:center;} td.r{text-align:center;padding-right:9px;}
+tr.grand td{background:#D6EEF7;font-weight:600;color:#0B4A5A;}
+tr.dr:hover td{background:#f8fafc;}
+td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.mu{color:#CBD5E1;}
+.dhdr th{background:#4c1d95;color:#ffffff;border-color:#3b0764;text-align:left;}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
+.ps1{background:#FCEBEB;color:#791F1F;} .ps2{background:#FAEEDA;color:#633806;} .ps3{background:#E6F1FB;color:#0C447C;}
+.pye{background:#EAF3DE;color:#27500A;} .pno{background:#F1EFE8;color:#444441;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:24px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:14px;color:#1a1a2e;}
+.modal label{font-size:12px;color:#475569;display:block;margin-top:10px;margin-bottom:3px;}
+.modal input[type=text],.modal textarea{width:100%;font-size:12px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;color:#1a1a2e;font-family:inherit;}
+.modal textarea{resize:vertical;height:70px;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+.chkrow{display:flex;align-items:center;gap:8px;font-size:12px;color:#475569;margin-top:10px;}
+.chkrow input{width:auto;}
+.eres{font-size:12px;margin-top:10px;padding:7px 10px;border-radius:5px;display:none;}
+@media print{.ubar,.tbar,.modal-bg,.hdr-r .btn{display:none!important;}body{background:#fff;}.main{padding:8px;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>&#128202; SKY ATC - Defect Dashboard</h1>
+  <div class="hdr-r">
+    <span class="ts" id="tsLbl">Data as on 10 Jun 2026 &nbsp;&middot;&nbsp; 91 records</span>
+    <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
+    <button class="btn bs" onclick="window.print()">&#128438; Print / PDF</button>
+  </div>
+</div>
+
+<div class="ubar">
+  <!-- Hidden file input -->
+  <input type="file" id="csvFile" accept=".csv,.json" onchange="handleUpload(this)" style="display:none;"/>
+  <!-- Upload trigger button -->
+  <button class="ubtn" onclick="document.getElementById('csvFile').click()">&#128196; Upload JIRA export</button>
+  <!-- Data-as-on label — updates after upload -->
+  <span id="dataAsOn" class="data-as-on">Data as on 10 Jun 2026</span>
+  <span id="umsg" class="umsg" style="display:none;"></span>
+</div>
+
+
+<!-- ── TAB NAVIGATION ────────────────────────────────────────── -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('dashboard')" id="tab-dashboard">&#128202; Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('config')" id="tab-config">&#9881; Configuration</button>
+</div>
+
+<!-- ══════════════ TAB: DASHBOARD ════════════════════════════ -->
+<div class="tab-pane active" id="pane-dashboard">
+
+<div class="tbar">
+
+  <div class="ms-wrap" id="wrap-fR">
+    <button class="ms-btn" id="btn-fR" onclick="toggleMs('fR')">Release</button>
+    <div class="ms-dropdown" id="dd-fR">
+      <div class="ms-option ms-all"><input type="checkbox" id="fR-all" checked onchange="msToggleAll('fR',this)"/><label for="fR-all">All releases</label></div>
+      <div class="ms-divider"></div>
+      <div id="fR-opts"></div>
+    </div>
+  </div>
+
+  <div class="ms-wrap" id="wrap-fS">
+    <button class="ms-btn" id="btn-fS" onclick="toggleMs('fS')">Status</button>
+    <div class="ms-dropdown" id="dd-fS">
+      <div class="ms-option ms-all"><input type="checkbox" id="fS-all" checked onchange="msToggleAll('fS',this)"/><label for="fS-all">All statuses</label></div>
+      <div class="ms-divider"></div>
+      <div id="fS-opts"></div>
+    </div>
+  </div>
+
+  <div class="ms-wrap" id="wrap-fSv">
+    <button class="ms-btn" id="btn-fSv" onclick="toggleMs('fSv')">Severity</button>
+    <div class="ms-dropdown" id="dd-fSv">
+      <div class="ms-option ms-all"><input type="checkbox" id="fSv-all" checked onchange="msToggleAll('fSv',this)"/><label for="fSv-all">All severities</label></div>
+      <div class="ms-divider"></div>
+      <div class="ms-option"><input type="checkbox" id="fSv-1" value="Sev 1 - Blocker" onchange="msChange('fSv')"/><label for="fSv-1">Sev 1 &ndash; Blocker</label></div>
+      <div class="ms-option"><input type="checkbox" id="fSv-2" value="Sev 2 - Critical" onchange="msChange('fSv')"/><label for="fSv-2">Sev 2 &ndash; Critical</label></div>
+      <div class="ms-option"><input type="checkbox" id="fSv-3" value="Sev 3 - Major" onchange="msChange('fSv')"/><label for="fSv-3">Sev 3 &ndash; Major</label></div>
+    </div>
+  </div>
+
+  <div class="ms-wrap" id="wrap-fT">
+    <button class="ms-btn" id="btn-fT" onclick="toggleMs('fT')">Team</button>
+    <div class="ms-dropdown" id="dd-fT">
+      <div class="ms-option ms-all"><input type="checkbox" id="fT-all" checked onchange="msToggleAll('fT',this)"/><label for="fT-all">All teams</label></div>
+      <div class="ms-divider"></div>
+      <div class="ms-option"><input type="checkbox" id="fT-MOM" value="MOM" onchange="msChange('fT')"/><label for="fT-MOM">MOM</label></div>
+      <div class="ms-option"><input type="checkbox" id="fT-PB" value="PB" onchange="msChange('fT')"/><label for="fT-PB">PB</label></div>
+    </div>
+  </div>
+
+  <div class="ms-wrap" id="wrap-fK">
+    <button class="ms-btn" id="btn-fK" onclick="toggleMs('fK')">Known to client</button>
+    <div class="ms-dropdown" id="dd-fK">
+      <div class="ms-option ms-all"><input type="checkbox" id="fK-all" checked onchange="msToggleAll('fK',this)"/><label for="fK-all">All</label></div>
+      <div class="ms-divider"></div>
+      <div class="ms-option"><input type="checkbox" id="fK-yes" value="Yes" onchange="msChange('fK')"/><label for="fK-yes">Yes</label></div>
+      <div class="ms-option"><input type="checkbox" id="fK-no" value="No" onchange="msChange('fK')"/><label for="fK-no">No</label></div>
+    </div>
+  </div>
+
+  <button class="btn bx" onclick="rst()">&#8635; Reset</button>
+</div>
+
+<div class="main">
+  <div class="sbar" id="sb"></div>
+  <div class="sevtiles" id="sv"></div>
+  <div class="crow">
+    <div class="ccard"><div class="ctit">By status</div><div class="leg" id="lSt"></div><div style="position:relative;height:165px;"><canvas id="cSt" role="img" aria-label="Defects by status"></canvas></div></div>
+    <div class="ccard"><div class="ctit">By severity</div><div class="leg" id="lSv"></div><div style="position:relative;height:165px;"><canvas id="cSv" role="img" aria-label="Defects by severity"></canvas></div></div>
+    <div class="ccard"><div class="ctit">By team</div><div class="leg" id="lTm"></div><div style="position:relative;height:165px;"><canvas id="cTm" role="img" aria-label="Defects by team"></canvas></div></div>
+  </div>
+  <div class="shdr">Overall defect summary</div>
+  <div class="tcard"><div class="twrap"><table id="tA"></table></div></div>
+  <div id="s12"><div class="shdr">Release R1.2</div><div class="tcard"><div class="twrap"><table id="t12"></table></div></div></div>
+  <div id="s13"><div class="shdr">Release R1.3</div><div class="tcard"><div class="twrap"><table id="t13"></table></div></div></div>
+  <div id="s14"><div class="shdr">Release R1.4</div><div class="tcard"><div class="twrap"><table id="t14"></table></div></div></div>
+  <div class="shdr">Defect detail (all records)</div>
+  <div class="tcard"><div class="twrap">
+    <table id="tD">
+      <thead class="dhdr"><tr>
+        <th>Issue key</th><th>Status</th><th>Created</th><th>Planned Dev Completion</th>
+        <th>Severity</th><th>Team</th><th>Chunk</th><th>Known to client</th><th>Release</th>
+      </tr></thead>
+      <tbody id="dB"></tbody>
+    </table>
+  </div></div>
+</div>
+
+</div><!-- end pane-dashboard -->
+
+<!-- ══ TAB: CONFIG ══════════════════════════════════════ -->
+<div class="tab-pane" id="pane-config">
+  <div style="padding:20px 24px;max-width:900px;">
+    <h2 style="font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">&#9881; Configuration</h2>
+    <p style="font-size:12px;color:#64748b;margin-bottom:20px;">Define which statuses belong to each group. Changes apply immediately to the dashboard.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:20px;">
+
+      <div class="cfg-group">
+        <div class="cfg-group-title">&#128308; Closed / Rejected statuses</div>
+        <p style="font-size:11px;color:#64748b;margin-bottom:8px;">These are excluded from active defect counts.</p>
+        <div class="cfg-tags" id="tagsEX2"></div>
+        <div class="cfg-add">
+          <input type="text" id="addEX2" placeholder="Type status name…" onkeydown="if(event.key==='Enter')addTag2('EX')"/>
+          <button onclick="addTag2('EX')">+ Add</button>
+        </div>
+      </div>
+
+      <div class="cfg-group">
+        <div class="cfg-group-title">&#128994; Fixed / In review statuses</div>
+        <p style="font-size:11px;color:#64748b;margin-bottom:8px;">Counted in the Fixed / In review summary tile.</p>
+        <div class="cfg-tags" id="tagsGR2"></div>
+        <div class="cfg-add">
+          <input type="text" id="addGR2" placeholder="Type status name…" onkeydown="if(event.key==='Enter')addTag2('GR')"/>
+          <button onclick="addTag2('GR')">+ Add</button>
+        </div>
+      </div>
+
+      <div class="cfg-group">
+        <div class="cfg-group-title">&#128997; Reopened / Blocked statuses</div>
+        <p style="font-size:11px;color:#64748b;margin-bottom:8px;">Highlighted in red in pivot tables. Counted in Reopened tile.</p>
+        <div class="cfg-tags" id="tagsRE2"></div>
+        <div class="cfg-add">
+          <input type="text" id="addRE2" placeholder="Type status name…" onkeydown="if(event.key==='Enter')addTag2('RE')"/>
+          <button onclick="addTag2('RE')">+ Add</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="cfg-save" onclick="applyConfig2()">&#10003; Apply &amp; refresh dashboard</button>
+      <span class="cfg-reset-lnk" onclick="resetConfig()">Reset to defaults</span>
+      <span id="cfgAppliedMsg" style="font-size:12px;color:#059669;display:none;">&#10003; Applied!</span>
+    </div>
+
+    <div style="margin-top:24px;padding:14px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+      <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">Current status inventory (from loaded data)</div>
+      <div id="statusInventory" style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px;"></div>
+    </div>
+  </div>
+</div><!-- end pane-config -->
+
+<!-- Send report modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2>&#128196; Send report</h2>
+    <label>To <span style="color:#dc2626">*</span></label>
+    <input type="text" id="mTo" placeholder="john@accenture.com, jane@accenture.com"/>
+    <label>CC</label>
+    <input type="text" id="mCc" placeholder="optional"/>
+    <label>Subject</label>
+    <input type="text" id="mSj" value="SKY ATC &ndash; Defect Status Report"/>
+    <label>Opening message (appears above report in email body)</label>
+    <textarea id="mBd" placeholder="Hi team,&#10;&#10;Please find the latest SKY ATC defect status report below.&#10;&#10;Regards">Hi team,
+
+Please find the latest SKY ATC defect status report below.
+
+Regards</textarea>
+    <div class="eres" id="eres"></div>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px 14px;margin-top:12px;font-size:11px;color:#475569;line-height:1.8;">
+      <b style="color:#1a1a2e;font-size:12px;">How each option works</b><br/>
+      <b style="color:#1a1a2e;">&#128203; Copy to clipboard</b> &mdash; copies the full styled report. Open a new Outlook email, click in the body, and press <b>Ctrl+V</b> (Windows) or <b>Cmd+V</b> (Mac) to paste.<br/>
+      <b style="color:#1a1a2e;">&#11015; Download HTML</b> &mdash; saves the report as a file you can attach to any email.
+    </div>
+    <div class="modal-btns">
+      <button class="btn bx" onclick="closeModal()">Cancel</button>
+      <button class="btn bs" onclick="dlReport()">&#11015; Download</button>
+      <button class="btn bp" onclick="copyToClipboard()">&#128203; Copy to clipboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   DEFAULT DATA  —  10 Jun 2026 JIRA export
+   Upload a new CSV to replace this instantly.
+═══════════════════════════════════════════════ */
+var D=[{"key": "AMAP-67630", "status": "Closed", "created": "30-May-26", "pcd": "03-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68118", "status": "VALIDATED BY QA TEAM", "created": "07-Jun-26", "pcd": "08-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "IBMS Campaign Integration - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": true}, {"key": "AMAP-68245", "status": "Review Complete", "created": "09-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 1 - Blocker", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68046", "status": "Closed", "created": "05-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "GO UI CR Slot 2 - Order management page full editabilty - R1.4", "knownClient": "Yes", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68044", "status": "Sanity Checked", "created": "05-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Discount & Bonus - File Upload - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67999", "status": "Review Complete", "created": "04-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 1 - Blocker", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67994", "status": "Review Complete", "created": "04-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 1 - Blocker", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67991", "status": "Review Complete", "created": "04-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67713", "status": "Review Complete", "created": "01-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Wallet Enhancement - CR3 - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67229", "status": "Review Complete", "created": "26-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67228", "status": "VALIDATED BY QA TEAM", "created": "26-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67043", "status": "Review Complete", "created": "22-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67019", "status": "Sanity Checked", "created": "21-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-66968", "status": "Review Complete", "created": "21-May-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66073", "status": "VALIDATED BY QA TEAM", "created": "12-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-66015", "status": "Review Complete", "created": "11-May-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68140", "status": "In Review", "created": "08-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68137", "status": "Review Complete", "created": "08-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68124", "status": "Review Complete", "created": "07-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "GO UI CR Slot 2 - Premium position, Status machine - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67998", "status": "Review Complete", "created": "04-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "PB", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67729", "status": "In Review", "created": "02-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67721", "status": "In Review", "created": "02-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67718", "status": "In Review", "created": "02-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67694", "status": "Dev In Progress", "created": "01-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67261", "status": "Review Complete", "created": "27-May-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "PB [N]", "chunk": "GO UI CR Slot 2 - Premium position, Status machine - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67230", "status": "Blocked", "created": "26-May-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67198", "status": "Review Complete", "created": "26-May-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67011", "status": "Review Complete", "created": "21-May-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-66999", "status": "Fixed", "created": "21-May-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Catalogue Integration - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": true}, {"key": "AMAP-66853", "status": "Resolved (migrated)", "created": "19-May-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-65702", "status": "Pending Clarification - QA", "created": "11-May-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68232", "status": "Dev In Progress", "created": "09-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68226", "status": "Dev In Progress", "created": "08-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68133", "status": "Review Complete", "created": "08-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67988", "status": "Pending Clarification – Functional", "created": "04-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67974", "status": "Dev In Progress", "created": "04-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67771", "status": "Impact Assessment", "created": "03-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67764", "status": "Blocked", "created": "03-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67727", "status": "Dev In Progress", "created": "02-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67726", "status": "Dev In Progress", "created": "02-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67725", "status": "Blocked", "created": "02-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67567", "status": "Dev In Progress", "created": "29-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67258", "status": "Dev In Progress", "created": "27-May-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67112", "status": "Blocked", "created": "25-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67017", "status": "Review Complete", "created": "21-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "GO UI CR Slot 2 - Order management page full editabilty - R1.4", "knownClient": "Yes", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66995", "status": "Impact Assessment", "created": "21-May-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66980", "status": "Impact Assessment", "created": "21-May-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66972", "status": "Impact Assessment", "created": "21-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66880", "status": "Closed", "created": "20-May-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-65674", "status": "Dev In Progress", "created": "08-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-65596", "status": "Dev In Progress", "created": "07-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "sales agent portfolio & visbility rule - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": true}, {"key": "AMAP-68254", "status": "New", "created": "09-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68253", "status": "Impact Assessment", "created": "09-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68237", "status": "Impact Assessment", "created": "09-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68234", "status": "Impact Assessment", "created": "09-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68165", "status": "Impact Assessment", "created": "08-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 1 - Blocker", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-68055", "status": "Impact Assessment", "created": "05-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68052", "status": "Dev In Progress", "created": "05-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-68040", "status": "In Review", "created": "05-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68002", "status": "In Review", "created": "04-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67720", "status": "Impact Assessment", "created": "02-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67717", "status": "Impact Assessment", "created": "02-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67685", "status": "Impact Assessment", "created": "01-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67277", "status": "Dev In Progress", "created": "27-May-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67276", "status": "Impact Assessment", "created": "27-May-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67239", "status": "Dev In Progress", "created": "26-May-26", "pcd": "12-Jun-26", "severity": "Sev 1 - Blocker", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67232", "status": "Blocked", "created": "26-May-26", "pcd": "12-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67227", "status": "Blocked", "created": "26-May-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67158", "status": "Impact Assessment", "created": "25-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67051", "status": "Impact Assessment", "created": "22-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67049", "status": "Impact Assessment", "created": "22-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67040", "status": "Impact Assessment", "created": "22-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66918", "status": "Impact Assessment", "created": "20-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68283", "status": "New", "created": "09-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68282", "status": "Pending Clarification – Functional", "created": "09-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68280", "status": "Pending Clarification – Functional", "created": "09-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68247", "status": "New", "created": "09-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68230", "status": "Impact Assessment", "created": "08-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68182", "status": "New", "created": "08-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68120", "status": "Impact Assessment", "created": "07-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "IBMS Campaign Integration - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": false}, {"key": "AMAP-67986", "status": "Pending Clarification – Client", "created": "04-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Catalogue Integration - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": false}, {"key": "AMAP-67985", "status": "New", "created": "04-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67724", "status": "Blocked", "created": "02-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67712", "status": "Pending Clarification – Functional", "created": "01-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67708", "status": "Reopened (migrated)", "created": "01-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": false}, {"key": "AMAP-67609", "status": "Pending Clarification - QA", "created": "29-May-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "PB [N]", "chunk": "GO UI CR Slot 2 - Order management page full editabilty - R1.4", "knownClient": "Yes", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67566", "status": "Reopened (migrated)", "created": "29-May-26", "pcd": "TBD", "severity": "Sev 1 - Blocker", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67528", "status": "Blocked", "created": "28-May-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": false}, {"key": "AMAP-67187", "status": "Pending Clarification – Functional", "created": "26-May-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67111", "status": "Dev In Progress", "created": "24-May-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-66970", "status": "Pending Clarification – Functional", "created": "21-May-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}];
+
+var EX=['Closed','Rejected'],GR=['Resolved (migrated)','Review Complete','In Review','VALIDATED BY QA TEAM','Fixed','Sanity Checked'],RE=['Reopened (migrated)','Blocked'];
+var PC=['TBD','03-Jun-26','08-Jun-26','09-Jun-26','10-Jun-26','11-Jun-26','12-Jun-26','15-Jun-26'];
+var SC={'Blocked':'#dc2626','Dev In Progress':'#d97706','Impact Assessment':'#378ADD','In Review':'#1D9E75','New':'#888780','Pending Clarification \u2013 Functional':'#7F77DD','Reopened (migrated)':'#A32D2D','Resolved (migrated)':'#059669','Review Complete':'#0F6E56','VALIDATED BY QA TEAM':'#639922'};
+var CH={};
+
+/* Get selected values from a multiselect dropdown.
+   Returns [] if "All" checked, otherwise array of selected values. */
+function gv(id){
+  var allCb=document.getElementById(id+'-all');
+  if(!allCb) return [];
+  if(allCb.checked) return [];   /* empty = no filter */
+  var boxes=document.querySelectorAll('#dd-'+id+' input[type=checkbox]:not(#'+id+'-all)');
+  var vals=[];
+  boxes.forEach(function(b){if(b.checked) vals.push(b.value);});
+  return vals;
+}
+function cn(a,k,v){return a.filter(function(d){return d[k]===v;}).length;}
+
+function fd(ix){
+  var r=gv('fR'),s=gv('fS'),sv=gv('fSv'),t=gv('fT'),k=gv('fK');
+  return D.filter(function(d){
+    if(!ix&&EX.indexOf(d.status)>=0)return false;
+    if(r.length&&r.indexOf(d.release)<0)return false;
+    if(s.length&&s.indexOf(d.status)<0)return false;
+    if(sv.length&&sv.indexOf(d.severity)<0)return false;
+    if(t.length&&t.indexOf(d.team)<0)return false;
+    if(k.length&&k.indexOf(d.knownClient)<0)return false;
+    return true;
+  });
+}
+
+function go(){
+  var a=fd(false),all=fd(true);
+  /* Summary counts from filtered sets — respect active filters */
+  var D_total   = all.length;
+  var D_closed  = all.filter(function(d){return EX.indexOf(d.status)>=0;}).length;
+  var D_active  = a.length;
+  var removed   = D_closed;
+  var withPcd   = all.filter(function(d){return d.hasPcd===true;}).length;
+  var tbd       = all.filter(function(d){return !d.hasPcd;}).length;
+  var fx        = a.filter(function(d){return GR.indexOf(d.status)>=0;}).length;
+  document.getElementById('sb').innerHTML=
+    '<div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4c1d95;margin-bottom:10px;text-align:center;">Summary</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;">'+
+      '<div style="padding-right:20px;border-right:1px solid #DDD6FE;margin-right:20px;text-align:center;">'+
+        '<div style="font-size:9px;color:#5b21b6;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Total defects</div>'+
+        '<div style="font-size:28px;font-weight:500;color:#1e3a5f;line-height:1;">'+D_total+'</div>'+
+        '<div style="font-size:11px;color:#374151;margin-top:4px;">Active: <span style="color:#6d28d9;font-weight:600;">'+D_active+'</span></div>'+
+      '</div>'+
+      '<div style="padding-right:20px;border-right:1px solid #DDD6FE;margin-right:20px;text-align:center;">'+
+        '<div style="font-size:9px;color:#92400e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Planned dates</div>'+
+        '<div style="display:flex;align-items:baseline;gap:4px;justify-content:center;">'+
+        '<div style="font-size:28px;font-weight:500;color:#065f46;line-height:1;">'+withPcd+'</div>'+
+        '<div style="font-size:13px;color:#374151;opacity:.6;">of '+D_total+'</div>'+
+        '</div>'+
+        '<div style="font-size:11px;color:#374151;margin-top:4px;"><span style="color:#b45309;font-weight:600;">'+tbd+'</span> Without Planned dates</div>'+
+      '</div>'+
+      '<div style="padding-right:20px;border-right:1px solid #DDD6FE;margin-right:20px;text-align:center;">'+
+        '<div style="font-size:9px;color:#065f46;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Fixed / In review</div>'+
+        '<div style="font-size:28px;font-weight:500;color:#065f46;line-height:1;">'+fx+'</div>'+
+        '<div style="font-size:11px;color:#374151;margin-top:4px;">Resolved &amp; reviewed</div>'+
+      '</div>'+
+      '<div style="padding-right:20px;border-right:1px solid #DDD6FE;margin-right:20px;text-align:center;">'+
+        '<div style="font-size:9px;color:#92400e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Reopened</div>'+
+        '<div style="font-size:28px;font-weight:500;color:#b45309;line-height:1;">'+all.filter(function(d){return RE.indexOf(d.status)>=0;}).length+'</div>'+
+        '<div style="font-size:11px;color:#374151;margin-top:4px;">'+RE.join(' &middot; ')+'</div>'+
+      '</div>'+
+      '<div style="padding-left:20px;border-left:2px solid #FCA5A5;text-align:center;">'+
+        '<div style="font-size:9px;color:#991b1b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Closed / Rejected</div>'+
+        '<div style="font-size:28px;font-weight:500;color:#dc2626;line-height:1;">'+D_closed+'</div>'+
+        '<div style="font-size:11px;color:#374151;margin-top:4px;">'+
+          '<span style="color:#991b1b;font-weight:600;">'+cn(all,'status','Closed')+'</span> Closed'+
+          ' &middot; <span style="color:#991b1b;font-weight:600;">'+cn(all,'status','Rejected')+'</span> Rejected'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+
+  var s1=a.filter(function(d){return d.severity==='Sev 1 - Blocker';}),
+      s2=a.filter(function(d){return d.severity==='Sev 2 - Critical';}),
+      s3=a.filter(function(d){return d.severity==='Sev 3 - Major';});
+
+  function sub(arr){var m={};arr.forEach(function(d){m[d.status]=(m[d.status]||0)+1;});return Object.keys(m).map(function(k){return m[k]+' '+k;}).join(' &middot; ')||'&mdash;';}
+  document.getElementById('sv').innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">'+
+    tile('s1','Sev 1 &ndash; Blocker',s1.length,sub(s1),a.length)+
+    tile('s2','Sev 2 &ndash; Critical',s2.length,sub(s2),a.length)+
+    tile('s3','Sev 3 &ndash; Major',s3.length,sub(s3),a.length)+
+    '</div>';
+
+  Object.values(CH).forEach(function(c){if(c)c.destroy();});CH={};
+  var sts=[...new Set(a.map(function(d){return d.status;}))].sort();
+  leg('lSt',sts,sts.map(function(s){return SC[s]||'#888';}));
+  CH.st=dn('cSt',sts,sts.map(function(s){return cn(a,'status',s);}),sts.map(function(s){return SC[s]||'#888';}));
+  leg('lSv',['Sev 1 \u2013 Blocker','Sev 2 \u2013 Critical','Sev 3 \u2013 Major'],['#dc2626','#d97706','#378ADD']);
+  CH.sv=dn('cSv',['Sev 1 - Blocker','Sev 2 - Critical','Sev 3 - Major'],[s1.length,s2.length,s3.length],['#dc2626','#d97706','#378ADD']);
+  leg('lTm',['MOM','PB'],['#534AB7','#1D9E75']);
+  CH.tm=dn('cTm',['MOM','PB'],[cn(a,'team','MOM'),cn(a,'team','PB')],['#534AB7','#1D9E75']);
+
+  /* Pivot tables use FULL unfiltered active dataset — filters only apply to tiles/charts/detail */
+  var allActive=D.filter(function(d){return EX.indexOf(d.status)<0;});
+  pv('tA',allActive,null);
+  document.getElementById('s14').style.display='';
+  document.getElementById('s12').style.display='';
+  document.getElementById('s13').style.display='';
+  pv('t14',allActive,'R1.4');
+  pv('t12',allActive,'R1.2');
+  pv('t13',allActive,'R1.3');
+
+  document.getElementById('dB').innerHTML=all.map(function(d){
+    var g=GR.indexOf(d.status)>=0,r=RE.indexOf(d.status)>=0,c=g?'gn':r?'rd':'';
+    return '<tr class="dr"><td>'+d.key+'</td><td class="'+c+'">'+d.status+'</td><td>'+fmtDMY(d.created)+'</td><td>'+fmtDMY(d.pcd)+'</td>'+
+      '<td>'+sp(d.severity)+'</td><td>'+d.team+'</td><td style="white-space:normal;max-width:200px;">'+d.chunk+'</td>'+
+      '<td><span class="pill '+(d.knownClient==='Yes'?'pye':'pno')+'">'+d.knownClient+'</span></td>'+
+      '<td>'+d.release+'</td></tr>';
+  }).join('');
+}
+
+function tile(c,l,n,s,total){
+  var cfg={
+    's1':{bg:'#FCEBEB',border:'#F09595',col:'#791F1F',badge:'#F7C1C1',bar:'#A32D2D'},
+    's2':{bg:'#FAEEDA',border:'#EF9F27',col:'#633806',badge:'#FAC775',bar:'#b45309'},
+    's3':{bg:'#E6F1FB',border:'#85B7EB',col:'#0C447C',badge:'#B5D4F4',bar:'#185FA5'}
+  };
+  var k=cfg[c]||cfg['s3'];
+  var pct=total>0?Math.round(n/total*100):0;
+
+  return '<div style="background:'+k.bg+';border:1px solid '+k.border+';border-radius:10px;overflow:hidden;">'+
+
+    /* ── TOP: label + big count + progress bar ── */
+    '<div style="padding:14px 16px 12px;text-align:center;">'+
+      '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;'+
+           'display:inline-block;padding:3px 10px;border-radius:6px;background:'+k.badge+';color:'+k.col+';margin-bottom:10px;">'+l+'</div>'+
+      '<div style="font-size:36px;font-weight:600;color:'+k.col+';line-height:1;margin-bottom:6px;">'+n+'</div>'+
+      '<div style="height:5px;background:rgba(0,0,0,.08);border-radius:3px;margin-bottom:4px;">'+
+        '<div style="height:5px;width:'+pct+'%;background:'+k.bar+';border-radius:3px;margin:0 auto;"></div>'+
+      '</div>'+
+      '<div style="font-size:9px;color:'+k.col+';opacity:.6;">'+pct+'% of active defects</div>'+
+    '</div>'+
+
+    /* ── DIVIDER ── */
+    '<div style="height:1px;background:'+k.border+';opacity:.4;"></div>'+
+
+    /* ── BOTTOM: breakdown as flowing text, centred ── */
+    '<div style="padding:10px 16px 14px;text-align:center;">'+
+      '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;'+
+           'color:'+k.col+';opacity:.6;margin-bottom:6px;">Breakdown</div>'+
+      '<div style="font-size:11px;color:'+k.col+';line-height:1.8;opacity:.9;">'+s+'</div>'+
+    '</div>'+
+
+  '</div>';
+}
+function dn(id,lb,dt,cl){
+  var total=dt.reduce(function(a,b){return a+b;},0);
+
+  /* Centre total label */
+  var centerLabel={
+    id:'cL_'+id,
+    afterDraw:function(chart){
+      var ctx=chart.ctx;
+      var cx=chart.chartArea.left+(chart.chartArea.right-chart.chartArea.left)/2;
+      var cy=chart.chartArea.top+(chart.chartArea.bottom-chart.chartArea.top)/2;
+      ctx.save();
+      ctx.font='700 20px -apple-system,Segoe UI,Arial,sans-serif';
+      ctx.fillStyle='#1a1a2e';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(total,cx,cy-6);
+      ctx.font='400 9px -apple-system,Segoe UI,Arial,sans-serif';
+      ctx.fillStyle='#64748b';
+      ctx.fillText('total',cx,cy+9);
+      ctx.restore();
+    }
+  };
+
+  /* Per-segment count — drawn as a pill outside the donut ring */
+  var segLabels={
+    id:'sL_'+id,
+    afterDatasetsDraw:function(chart){
+      var ctx=chart.ctx;
+      var ds=chart.data.datasets[0];
+      var meta=chart.getDatasetMeta(0);
+      ctx.save();
+      meta.data.forEach(function(arc,i){
+        var val=ds.data[i];
+        if(!val) return;
+        /* midpoint angle of this slice */
+        var angle=arc.startAngle+(arc.endAngle-arc.startAngle)/2;
+        /* position just outside the outer radius */
+        var r=arc.outerRadius+14;
+        var x=arc.x+Math.cos(angle)*r;
+        var y=arc.y+Math.sin(angle)*r;
+        /* pill background */
+        var txt=String(val);
+        ctx.font='700 11px -apple-system,Segoe UI,Arial,sans-serif';
+        var tw=ctx.measureText(txt).width;
+        var pw=tw+10, ph=17, px=x-pw/2, py=y-ph/2, pr=4;
+        ctx.beginPath();
+        ctx.moveTo(px+pr,py);
+        ctx.lineTo(px+pw-pr,py);
+        ctx.quadraticCurveTo(px+pw,py,px+pw,py+pr);
+        ctx.lineTo(px+pw,py+ph-pr);
+        ctx.quadraticCurveTo(px+pw,py+ph,px+pw-pr,py+ph);
+        ctx.lineTo(px+pr,py+ph);
+        ctx.quadraticCurveTo(px,py+ph,px,py+ph-pr);
+        ctx.lineTo(px,py+pr);
+        ctx.quadraticCurveTo(px,py,px+pr,py);
+        ctx.closePath();
+        ctx.fillStyle=cl[i];
+        ctx.fill();
+        /* white number inside pill */
+        ctx.fillStyle='#ffffff';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(txt,x,y);
+      });
+      ctx.restore();
+    }
+  };
+
+  return new Chart(document.getElementById(id),{
+    type:'doughnut',
+    data:{labels:lb,datasets:[{data:dt,backgroundColor:cl,borderWidth:4,borderColor:'#fff'}]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      layout:{padding:22},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(ctx){return ' '+ctx.label+': '+ctx.raw+' ('+Math.round(ctx.raw/total*100)+'%)';}}}
+      },
+      cutout:'58%'
+    },
+    plugins:[centerLabel,segLabels]
+  });
+}
+function leg(id,lb,cl){document.getElementById(id).innerHTML=lb.map(function(l,i){return '<span><span class="ld" style="background:'+cl[i]+'"></span>'+l+'</span>';}).join('');}
+
+function pv(tid,data,rel){
+  var sub=rel?data.filter(function(d){return d.release===rel;}):data;
+  var sm={};sub.forEach(function(d){if(!sm[d.status])sm[d.status]={};sm[d.status][d.pcd]=(sm[d.status][d.pcd]||0)+1;});
+  var sts=Object.keys(sm).sort(),cols=PC.filter(function(c){return sts.some(function(s){return sm[s][c]>0;});});
+  var h='<thead><tr><th>Status</th>'+cols.map(function(c){return '<th class="r">'+c+'</th>';}).join('')+'<th class="r">Grand total</th></tr></thead><tbody>';
+  sts.forEach(function(st){
+    var g=GR.indexOf(st)>=0,r=RE.indexOf(st)>=0,c=g?'gn':r?'rd':'';var tot=0;
+    var cells=cols.map(function(col){var v=sm[st][col]||0;tot+=v;return '<td class="r '+(v?c:'mu')+'">'+(v||'&ndash;')+'</td>';}).join('');
+    h+='<tr class="dr"><td class="'+c+'">'+st+'</td>'+cells+'<td class="r '+c+'"><b>'+tot+'</b></td></tr>';
+  });
+  var tots={};cols.forEach(function(c){tots[c]=sts.reduce(function(s,st){return s+(sm[st][c]||0);},0);});
+  var grand=Object.values(tots).reduce(function(a,b){return a+b;},0);
+  h+='<tr class="grand"><td>Grand total</td>'+cols.map(function(c){return '<td class="r">'+tots[c]+'</td>';}).join('')+'<td class="r"><b>'+grand+'</b></td></tr></tbody>';
+  document.getElementById(tid).innerHTML=h;
+}
+
+function sp(s){var c=s==='Sev 1 - Blocker'?'ps1':s==='Sev 2 - Critical'?'ps2':'ps3';return '<span class="pill '+c+'">'+s+'</span>';}
+/* ── Multiselect helpers ── */
+function toggleMs(id){
+  var dd=document.getElementById('dd-'+id);
+  document.querySelectorAll('.ms-dropdown.open').forEach(function(el){
+    if(el.id!=='dd-'+id) el.classList.remove('open');
+  });
+  dd.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.ms-wrap')){
+    document.querySelectorAll('.ms-dropdown.open').forEach(function(el){el.classList.remove('open');});
+  }
+});
+function msToggleAll(id,allCb){
+  document.querySelectorAll('#dd-'+id+' input[type=checkbox]:not(#'+id+'-all)').forEach(function(b){b.checked=false;});
+  allCb.checked=true;
+  updateMsBtn(id);go();
+}
+function msChange(id){
+  var allCb=document.getElementById(id+'-all');
+  var boxes=document.querySelectorAll('#dd-'+id+' input[type=checkbox]:not(#'+id+'-all)');
+  var any=false; boxes.forEach(function(b){if(b.checked)any=true;});
+  allCb.checked=!any;
+  updateMsBtn(id);go();
+}
+function updateMsBtn(id){
+  var btn=document.getElementById('btn-'+id);if(!btn)return;
+  var lbls={'fR':'Release','fS':'Status','fSv':'Severity','fT':'Team','fK':'Known to client'};
+  var allCb=document.getElementById(id+'-all');
+  if(allCb&&allCb.checked){btn.innerHTML=lbls[id]||id;btn.classList.remove('has-sel');return;}
+  var checked=document.querySelectorAll('#dd-'+id+' input[type=checkbox]:not(#'+id+'-all):checked');
+  var n=checked.length;
+  if(n===0){document.getElementById(id+'-all').checked=true;btn.innerHTML=lbls[id]||id;btn.classList.remove('has-sel');}
+  else if(n===1){btn.innerHTML=(lbls[id]||id)+': '+checked[0].parentElement.querySelector('label').textContent;btn.classList.add('has-sel');}
+  else{btn.innerHTML=(lbls[id]||id)+' <span class="ms-count">'+n+'</span>';btn.classList.add('has-sel');}
+}
+function populateMsRelease(){
+  var c=document.getElementById('fR-opts');if(!c)return;
+  var rels=[...new Set(D.map(function(d){return d.release;}))].filter(function(r){return r&&r!=='Unknown';}).sort();
+  var html='';
+  rels.forEach(function(r,i){
+    var rid='fR-r'+i;
+    html+='<div class="ms-option"><input type="checkbox" id="'+rid+'" value="'+r+'" data-ms="fR"/>'+
+          '<label for="'+rid+'">'+r+'</label></div>';
+  });
+  c.innerHTML=html;
+  c.querySelectorAll('input[data-ms]').forEach(function(b){
+    b.addEventListener('change',function(){msChange(b.getAttribute('data-ms'));});
+  });
+}
+
+function populateMsStatus(){
+  var c=document.getElementById('fS-opts');if(!c)return;
+  var sts=[...new Set(D.map(function(d){return d.status;}))].sort();
+  var html='';
+  sts.forEach(function(s,i){
+    var sid='fS-s'+i;
+    var safeVal=s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    html+='<div class="ms-option"><input type="checkbox" id="'+sid+'" value="'+safeVal+'" data-ms="fS"/>'+
+          '<label for="'+sid+'">'+s+'</label></div>';
+  });
+  c.innerHTML=html;
+  c.querySelectorAll('input[data-ms]').forEach(function(b){
+    b.addEventListener('change',function(){msChange(b.getAttribute('data-ms'));});
+  });
+}
+
+
+function rst(){
+  ['fR','fS','fSv','fT','fK'].forEach(function(id){
+    var allCb=document.getElementById(id+'-all');
+    if(allCb) allCb.checked=true;
+    document.querySelectorAll('#dd-'+id+' input[type=checkbox]:not(#'+id+'-all)')
+      .forEach(function(b){b.checked=false;});
+    updateMsBtn(id);
+  });
+  go();
+}
+
+/* ── CSV / JSON upload (client-side, no server needed) ── */
+function extractDateFromFilename(name){
+  var MONTHS=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  var MNAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var s=name.replace(/\.csv|\.json/i,'');
+
+  /* Pattern 1: YYYY-MM-DD or YYYY_MM_DD or YYYYMMDD */
+  var m=s.match(/(20\d{2})[-_]?(\d{2})[-_]?(\d{2})/);
+  if(m){var d=new Date(+m[1],+m[2]-1,+m[3]);if(!isNaN(d))return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+
+  /* Pattern 2: DD-MM-YYYY or DD/MM/YYYY or DD_MM_YYYY */
+  m=s.match(/(\d{2})[-/_](\d{2})[-/_](20\d{2})/);
+  if(m){var d=new Date(+m[3],+m[2]-1,+m[1]);if(!isNaN(d))return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+
+  /* Pattern 3: DDMonYYYY or DD_Mon_YYYY e.g. 11Jun2026, 11-Jun-2026 */
+  m=s.match(/(\d{1,2})[-_]?([A-Za-z]{3})[-_]?(20\d{2})/);
+  if(m){var mi=MONTHS.indexOf(m[2].toLowerCase());if(mi>=0){var d=new Date(+m[3],mi,+m[1]);if(!isNaN(d))return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}}
+
+  /* Pattern 4: MonDDYYYY or Mon_DD_YYYY e.g. Jun11_2026 */
+  m=s.match(/([A-Za-z]{3})[-_]?(\d{1,2})[-_]?(20\d{2})/);
+  if(m){var mi=MONTHS.indexOf(m[1].toLowerCase());if(mi>=0){var d=new Date(+m[3],mi,+m[2]);if(!isNaN(d))return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}}
+
+  /* Pattern 5: just YYYYMMDD 8-digit block */
+  m=s.match(/(20\d{2})(\d{2})(\d{2})/);
+  if(m){var d=new Date(+m[1],+m[2]-1,+m[3]);if(!isNaN(d))return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+
+  return null; /* no date found in filename */
+}
+
+function handleUpload(inp){
+  var f=inp.files[0]; if(!f)return;
+  var r=new FileReader();
+  var el=document.getElementById('umsg');
+  el.textContent='Reading file\u2026';el.className='umsg';el.style.display='inline-block';
+  r.onload=function(e){
+    try{
+      var records;
+      if(f.name.toLowerCase().endsWith('.json')){
+        records=JSON.parse(e.target.result);
+      }else{
+        records=parseCSV(e.target.result);
+      }
+      if(!records||!records.length)throw new Error('No rows found \u2014 check column headers match JIRA export format');
+      D=records;
+      /* Extract date from filename — handles formats:
+         2026-06-11, 20260611, 11-06-2026, 11Jun2026, 11_Jun_2026, Jun 11 2026 etc. */
+      var fnDate=extractDateFromFilename(f.name);
+      var fallbackTs=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+      var displayDate=fnDate||fallbackTs;
+      document.getElementById('tsLbl').textContent=records.length+' records \u00b7 '+displayDate;
+      document.getElementById('dataAsOn').textContent='Data as on '+displayDate;
+      populateMsRelease();
+      populateMsStatus();
+      rst();
+      el.textContent='\u2713 '+records.length+' records loaded'; el.className='umsg uok';
+    }catch(err){el.textContent='\u2717 '+err.message;el.className='umsg uerr';}
+  };
+  r.readAsText(f,'UTF-8');
+}
+
+function extractReleaseFromChunk(chunk){
+  if(!chunk) return 'Unknown';
+  var m=chunk.match(/(R\d+\.\d+)/i);
+  return m ? m[1].toUpperCase() : 'Unknown';
+}
+
+function parseCSV(text){
+  var lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim().split('\n');
+  if(!lines.length)return[];
+  var raw=splitLine(lines[0]);
+  var hdrs=raw.map(function(h){return h.toLowerCase().trim();});
+  function col(){for(var i=0;i<arguments.length;i++){var idx=hdrs.indexOf(arguments[i]);if(idx>=0)return idx;}return -1;}
+  var iKey =col('issue key','key');
+  var iStat=col('status');
+  var iCre =col('created');
+  var iPcd =col('new pcd','pcd','custom field (dev planned completion)');
+  var iSev =col('custom field (severity)','severity');
+  var iTeam=col('custom field (scrumteam)','scrumteam','team');
+  var iChk =col('custom field (chunk)','chunk');
+  var iKnw =col('custom field (known by client)','known by client');
+  var iRel =col('release');
+  var out=[];
+  for(var i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    var c=splitLine(lines[i]);
+    function g(idx){return idx>=0&&idx<c.length?c[idx].trim():'';}
+    out.push({
+      key:g(iKey),status:g(iStat),created:fmtDate(g(iCre)),
+      pcd:convPcd(g(iPcd)),severity:g(iSev)||'Sev 3 - Major',
+      team:g(iTeam)||'MOM',chunk:g(iChk),
+      knownClient:g(iKnw)||'No',
+      release:extractReleaseFromChunk(g(iChk)),
+      hasPcd:!!(g(iPcd)&&g(iPcd).trim()&&g(iPcd).toUpperCase()!=='TBD')
+    });
+  }
+  return out;
+}
+
+function splitLine(line){
+  var fields=[],i=0;
+  while(i<=line.length){
+    if(i===line.length){fields.push('');break;}
+    if(line[i]==='"'){
+      i++;var sb='';
+      while(i<line.length){
+        if(line[i]==='"'){if(i+1<line.length&&line[i+1]==='"'){sb+='"';i+=2;}else{i++;break;}}
+        else sb+=line[i++];
+      }
+      fields.push(sb);if(i<line.length&&line[i]===',')i++;
+    }else{
+      var comma=line.indexOf(',',i);
+      if(comma<0){fields.push(line.substring(i));break;}
+      fields.push(line.substring(i,comma));i=comma+1;
+    }
+  }
+  return fields;
+}
+
+function convPcd(v){
+  if(!v||v.toUpperCase()==='TBD')return'TBD';
+  var n=parseFloat(v);
+  if(!isNaN(n)&&v.match(/^\d+(\.\d+)?$/)){
+    var d=new Date((n-25569)*86400000);
+    return(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+  }
+  var d=new Date(v);
+  if(!isNaN(d.getTime()))return(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+  return v.trim();
+}
+
+function fmtDate(v){
+  if(!v)return'';
+  var d=new Date(v);
+  if(!isNaN(d.getTime()))return(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+  return v.split(' ')[0];
+}
+
+/* ── Report builder & sender ── */
+function buildReport(){
+  var ts=document.getElementById('tsLbl').textContent;
+  var a=fd(false),all=fd(true);
+  var tbd=a.filter(function(d){return d.pcd==='TBD';}).length;
+  var fx=a.filter(function(d){return GR.indexOf(d.status)>=0;}).length;
+  var s1=cn(a,'severity','Sev 1 - Blocker'),s2=cn(a,'severity','Sev 2 - Critical'),s3=cn(a,'severity','Sev 3 - Major');
+
+  function pvtHtml(sub,title){
+    var sm={};sub.forEach(function(d){if(!sm[d.status])sm[d.status]={};sm[d.status][d.pcd]=(sm[d.status][d.pcd]||0)+1;});
+    var sts=Object.keys(sm).sort(),cols=PC.filter(function(c){return sts.some(function(s){return sm[s][c]>0;});});
+    var h='<h3 style="font-size:13px;font-weight:600;margin:14px 0 6px;color:#1a1a2e;">'+title+'</h3>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;"><thead><tr>'+
+      '<th style="background:#BFE4F0;color:#0B4A5A;padding:5px 8px;border:1px solid #93cfe0;text-align:left;">Status</th>'+
+      cols.map(function(c){return '<th style="background:#BFE4F0;color:#0B4A5A;padding:5px 8px;border:1px solid #93cfe0;text-align:center;">'+c+'</th>';}).join('')+
+      '<th style="background:#BFE4F0;color:#0B4A5A;padding:5px 8px;border:1px solid #93cfe0;text-align:center;">Grand total</th></tr></thead><tbody>';
+    sts.forEach(function(st){
+      var g=GR.indexOf(st)>=0,r=RE.indexOf(st)>=0,sc=g?'#0F6E56':r?'#A32D2D':'#1a1a2e';var tot=0;
+      var cells=cols.map(function(c){var v=sm[st][c]||0;tot+=v;return '<td style="padding:4px 8px;border:0.5px solid #e2e8f0;text-align:center;color:'+(v?sc:'#CBD5E1')+';">'+(v||'&ndash;')+'</td>';}).join('');
+      h+='<tr><td style="padding:4px 8px;border:0.5px solid #e2e8f0;color:'+sc+';">'+st+'</td>'+cells+'<td style="padding:4px 8px;border:0.5px solid #e2e8f0;text-align:center;font-weight:700;color:'+sc+';">'+tot+'</td></tr>';
+    });
+    var tots={};cols.forEach(function(c){tots[c]=sts.reduce(function(s,st){return s+(sm[st][c]||0);},0);});
+    var grand=Object.values(tots).reduce(function(a,b){return a+b;},0);
+    h+='<tr style="background:#D6EEF7;"><td style="padding:4px 8px;border:0.5px solid #e2e8f0;font-weight:700;color:#0B4A5A;">Grand total</td>'+
+      cols.map(function(c){return '<td style="padding:4px 8px;border:0.5px solid #e2e8f0;text-align:center;font-weight:700;color:#0B4A5A;">'+tots[c]+'</td>';}).join('')+
+      '<td style="padding:4px 8px;border:0.5px solid #e2e8f0;text-align:center;font-weight:700;color:#0B4A5A;">'+grand+'</td></tr></tbody></table>';
+    return h;
+  }
+
+  var rows=all.map(function(d){
+    var g=GR.indexOf(d.status)>=0,r=RE.indexOf(d.status)>=0,sc=g?'#0F6E56':r?'#A32D2D':'#1a1a2e';
+    var bg2=d.severity==='Sev 1 - Blocker'?'#FCEBEB':d.severity==='Sev 2 - Critical'?'#FAEEDA':'#E6F1FB';
+    var tc2=d.severity==='Sev 1 - Blocker'?'#791F1F':d.severity==='Sev 2 - Critical'?'#633806':'#0C447C';
+    return '<tr><td style="padding:4px 7px;border:0.5px solid #e2e8f0;white-space:nowrap;">'+d.key+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;color:'+sc+';">'+d.status+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;">'+fmtDMY(d.created)+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;">'+fmtDMY(d.pcd)+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;"><span style="background:'+bg2+';color:'+tc2+';padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;">'+d.severity+'</span></td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;">'+d.team+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;white-space:normal;max-width:200px;">'+d.chunk+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;text-align:center;">'+d.knownClient+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;">'+d.release+'</td></tr>';
+  }).join('');
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>SKY ATC Defect Report</title></head>'+
+    '<body style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#1a1a2e;margin:0;padding:0;">'+
+    '<div style="background:#1a1a2e;color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;">'+
+    '<span style="font-size:16px;font-weight:600;">SKY ATC &ndash; Defect Status &amp; Priority Report</span>'+
+    '<span style="font-size:11px;opacity:.65;">'+ts+'</span></div>'+
+    '<div style="padding:16px 24px;">'+
+    '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:12px;color:#475569;display:flex;flex-wrap:wrap;gap:14px;">'+
+    '<span><b style="color:#1a1a2e;">Total: '+all.length+'</b></span>'+
+    '<span><b style="color:#1a1a2e;">Active: '+a.length+'</b></span>'+
+    '<span><b style="color:#1a1a2e;">With planned date: '+withPcd+'</b></span>'+
+    '<span><b style="color:#1a1a2e;">Without planned date (TBD): '+tbd+'</b></span>'+
+    '<span><b style="color:#1a1a2e;">Fixed/In Review: '+fx+'</b></span>'+
+    '<span>Known to client: <b style="color:#1a1a2e;">'+cn(all,'knownClient','Yes')+'</b></span></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">'+
+    '<div style="background:#FCEBEB;border:1px solid #F09595;border-radius:10px;padding:14px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#791F1F;margin-bottom:4px;">Sev 1 &ndash; Blocker</div><div style="font-size:32px;font-weight:500;color:#791F1F;">'+s1+'</div></div>'+
+    '<div style="background:#FAEEDA;border:1px solid #EF9F27;border-radius:10px;padding:14px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#633806;margin-bottom:4px;">Sev 2 &ndash; Critical</div><div style="font-size:32px;font-weight:500;color:#633806;">'+s2+'</div></div>'+
+    '<div style="background:#E6F1FB;border:1px solid #85B7EB;border-radius:10px;padding:14px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#0C447C;margin-bottom:4px;">Sev 3 &ndash; Major</div><div style="font-size:32px;font-weight:500;color:#0C447C;">'+s3+'</div></div>'+
+    '</div>'+pvtHtml(a,'Overall defect summary')+
+    pvtHtml(a.filter(function(d){return d.release==='1.4';}),'Release 1.4')+
+    pvtHtml(a.filter(function(d){return d.release==='1.2/1.3';}),'Release 1.2 / 1.3')+
+    '<h3 style="font-size:13px;font-weight:600;margin:14px 0 6px;color:#1a1a2e;">Defect detail</h3>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#F0F014;">'+
+    ['Issue key','Status','Created','PCD','Severity','Team','Chunk','Known to client','Release']
+      .map(function(h){return '<th style="padding:5px 7px;border:1px solid #3b0764;color:#ffffff;">'+h+'</th>';}).join('')+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div></body></html>';
+}
+
+function dlReport(){
+  var html=buildReport();
+  var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
+  a.download='SKY_ATC_Defect_Report_'+ts+'.html'; a.click();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUILD EMAIL BODY  —  Outlook-safe HTML (no CSS classes,
+   all inline styles, tables-based layout).
+   Outlook strips <style> blocks and class attributes, so
+   every style must be inline. Grid/flexbox also stripped —
+   use <table> for multi-column layouts.
+═══════════════════════════════════════════════════════════ */
+function buildEmailBody(){
+  var ts  = document.getElementById('tsLbl').textContent;
+  var msg = document.getElementById('mBd').value ||
+            'Hi team,\n\nPlease find the latest SKY ATC defect status report below.\n\nRegards';
+  var a   = fd(false), all = fd(true);
+  var withPcd = D.filter(function(d){return d.hasPcd===true;}).length;
+  var tbd = D.filter(function(d){return !d.hasPcd;}).length;
+  var D_closed_e = D.filter(function(d){return EX.indexOf(d.status)>=0;}).length;
+  var D_active_e  = D.length - D_closed_e;
+  var fx  = D.filter(function(d){return EX.indexOf(d.status)<0&&GR.indexOf(d.status)>=0;}).length;
+  var s1  = cn(a,'severity','Sev 1 - Blocker');
+  var s2  = cn(a,'severity','Sev 2 - Critical');
+  var s3  = cn(a,'severity','Sev 3 - Major');
+
+  /* Convert plain-text message → HTML paragraphs */
+  var msgHtml = msg.split('\n').map(function(l){
+    return l.trim() ? '<p style="margin:0 0 6px;font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#1a1a2e;">'+
+      l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</p>'
+           : '<p style="margin:0 0 6px;">&nbsp;</p>';
+  }).join('');
+
+  /* Pivot table builder — Outlook-safe */
+  function pvt(sub, title){
+    var sm={};
+    sub.forEach(function(d){
+      if(!sm[d.status])sm[d.status]={};
+      sm[d.status][d.pcd]=(sm[d.status][d.pcd]||0)+1;
+    });
+    var sts  = Object.keys(sm).sort();
+    var cols = PC.filter(function(c){return sts.some(function(s){return sm[s][c]>0;});});
+    var h = '<h3 style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;font-weight:600;'+
+            'margin:18px 0 6px;color:#1a1a2e;border-bottom:2px solid #BFE4F0;padding-bottom:4px;">'+title+'</h3>'+
+            '<table width="100%" cellpadding="0" cellspacing="0" border="0" '+
+            'style="border-collapse:collapse;font-family:Segoe UI,Arial,sans-serif;font-size:11px;margin-bottom:14px;">'+
+            '<thead><tr>'+
+            '<th align="left" style="background:#BFE4F0;color:#0B4A5A;font-weight:600;'+
+            'padding:6px 9px;border:1px solid #93cfe0;white-space:nowrap;">Status</th>'+
+            cols.map(function(c){
+              return '<th align="center" style="background:#BFE4F0;color:#0B4A5A;font-weight:600;'+
+                     'padding:6px 9px;border:1px solid #93cfe0;white-space:nowrap;">'+c+'</th>';
+            }).join('')+
+            '<th align="center" style="background:#BFE4F0;color:#0B4A5A;font-weight:600;'+
+            'padding:6px 9px;border:1px solid #93cfe0;">Grand total</th></tr></thead><tbody>';
+
+    sts.forEach(function(st){
+      var g  = GR.indexOf(st)>=0, r = RE.indexOf(st)>=0;
+      var sc = g ? '#0F6E56' : r ? '#A32D2D' : '#1a1a2e';
+      var fw = (g||r) ? '600' : '400';
+      var bg = 'background:#fff;';
+      var tot = 0;
+      var cells = cols.map(function(c){
+        var v = sm[st][c]||0; tot+=v;
+        return '<td align="center" style="'+bg+'padding:5px 9px;border:0.5px solid #e2e8f0;'+
+               'color:'+(v?sc:'#CBD5E1')+';font-weight:'+(v?fw:'400')+';">'+(v||'–')+'</td>';
+      }).join('');
+      h += '<tr><td style="'+bg+'padding:5px 9px;border:0.5px solid #e2e8f0;'+
+           'color:'+sc+';font-weight:'+fw+';white-space:nowrap;">'+st+'</td>'+
+           cells+
+           '<td align="center" style="'+bg+'padding:5px 9px;border:0.5px solid #e2e8f0;'+
+           'color:'+sc+';font-weight:700;">'+tot+'</td></tr>';
+    });
+
+    var tots={};
+    cols.forEach(function(c){tots[c]=sts.reduce(function(s,st){return s+(sm[st][c]||0);},0);});
+    var grand = Object.values(tots).reduce(function(a,b){return a+b;},0);
+    h += '<tr style="background:#D6EEF7;"><td style="padding:5px 9px;border:0.5px solid #e2e8f0;'+
+         'font-weight:700;color:#0B4A5A;">Grand total</td>'+
+         cols.map(function(c){
+           return '<td align="center" style="padding:5px 9px;border:0.5px solid #e2e8f0;'+
+                  'font-weight:700;color:#0B4A5A;">'+tots[c]+'</td>';
+         }).join('')+
+         '<td align="center" style="padding:5px 9px;border:0.5px solid #e2e8f0;'+
+         'font-weight:700;color:#0B4A5A;">'+grand+'</td></tr></tbody></table>';
+    return h;
+  }
+
+  /* Detail rows */
+  var detailRows = all.map(function(d){
+    var g  = GR.indexOf(d.status)>=0, r = RE.indexOf(d.status)>=0;
+    var sc = g ? '#0F6E56' : r ? '#A32D2D' : '#1a1a2e';
+    var fw = (g||r) ? '600' : '400';
+    var bg2 = d.severity==='Sev 1 - Blocker'?'#FCEBEB':d.severity==='Sev 2 - Critical'?'#FAEEDA':'#E6F1FB';
+    var tc2 = d.severity==='Sev 1 - Blocker'?'#791F1F':d.severity==='Sev 2 - Critical'?'#633806':'#0C447C';
+    return '<tr>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;white-space:nowrap;font-size:11px;">'+d.key+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;color:'+sc+';font-weight:'+fw+';font-size:11px;white-space:nowrap;">'+d.status+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;font-size:11px;white-space:nowrap;">'+fmtDMY(d.created)+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;font-size:11px;white-space:nowrap;">'+fmtDMY(d.pcd)+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;font-size:11px;"><span style="background:'+bg2+';color:'+tc2+';padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap;">'+d.severity+'</span></td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;font-size:11px;">'+d.team+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;font-size:11px;">'+d.chunk+'</td>'+
+      '<td align="center" style="padding:4px 7px;border:0.5px solid #e2e8f0;font-size:11px;">'+d.knownClient+'</td>'+
+      '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;font-size:11px;">'+d.release+'</td></tr>';
+  }).join('');
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"/></head>'+
+    '<body style="margin:0;padding:0;background:#ffffff;font-family:Segoe UI,Arial,sans-serif;">'+
+
+    /* Header banner */
+    '<table width="100%" cellpadding="0" cellspacing="0" border="0">'+
+    '<tr><td style="background:#1a1a2e;padding:14px 24px;">'+
+    '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'+
+    '<td style="font-family:Segoe UI,Arial,sans-serif;font-size:16px;font-weight:600;color:#ffffff;">'+
+    'SKY ATC &ndash; Defect Status &amp; Priority Report</td>'+
+    '<td align="right" style="font-family:Segoe UI,Arial,sans-serif;font-size:11px;color:#ffffff;opacity:.65;">'+ts+'</td>'+
+    '</tr></table></td></tr></table>'+
+
+    '<div style="padding:16px 24px;">'+
+
+    /* Opening message */
+    '<div style="margin-bottom:16px;">'+msgHtml+'</div>'+
+
+    /* Summary bar */
+    '<table width="100%" cellpadding="0" cellspacing="0" border="0" '+
+    'style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;margin-bottom:14px;">'+
+    '<tr><td style="padding:14px 18px;font-family:Segoe UI,Arial,sans-serif;">'+
+    '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#4c1d95;margin-bottom:10px;">Summary</div>'+
+    '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'+
+    '<td width="33%" style="padding-right:16px;border-right:1px solid #DDD6FE;">'+
+      '<div style="font-size:9px;color:#5b21b6;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Total defects</div>'+
+      '<div style="font-size:28px;font-weight:500;color:#1e3a5f;line-height:1;">'+all.length+'</div>'+
+      '<div style="font-size:11px;color:#374151;margin-top:4px;">Initial: '+all.length+'&nbsp;&nbsp;Active: <span style="color:#6d28d9;font-weight:600;">'+a.length+'</span>'+
+        (all.length-a.length>0?' <i style="color:#64748b;">('+( all.length-a.length)+' removed)</i>':'')+
+      '</div>'+
+    '</td>'+
+    '<td width="33%" style="padding:0 16px;border-right:1px solid #DDD6FE;">'+
+      '<div style="font-size:9px;color:#92400e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Planned dates</div>'+
+      '<div style="font-size:28px;font-weight:500;color:#065f46;line-height:1;">'+withPcd+'</div>'+
+      '<div style="font-size:11px;color:#374151;margin-top:4px;"><span style="color:#b45309;font-weight:600;">'+tbd+'</span> Without Planned dates</div>'+
+    '</td>'+
+    '<td width="33%" style="padding-left:16px;">'+
+      '<div style="font-size:9px;color:#065f46;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Fixed / In review</div>'+
+      '<div style="font-size:28px;font-weight:500;color:#065f46;line-height:1;">'+fx+'</div>'+
+      '<div style="font-size:11px;color:#374151;margin-top:4px;">Resolved &amp; reviewed</div>'+
+    '</td>'+
+    '</tr></table>'+
+    '</td></tr></table>'+
+
+    /* Severity tiles — 3-column table */
+    '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;">'+
+    '<tr>'+
+    '<td width="33%" style="padding-right:6px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">'+
+    '<tr><td style="background:#FCEBEB;border:1px solid #F09595;border-radius:8px;padding:14px 16px;">'+
+    '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#791F1F;margin-bottom:4px;">Sev 1 &ndash; Blocker</div>'+
+    '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:30px;font-weight:500;color:#791F1F;line-height:1;">'+s1+'</div>'+
+    '</td></tr></table></td>'+
+    '<td width="33%" style="padding:0 3px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">'+
+    '<tr><td style="background:#FAEEDA;border:1px solid #EF9F27;border-radius:8px;padding:14px 16px;">'+
+    '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#633806;margin-bottom:4px;">Sev 2 &ndash; Critical</div>'+
+    '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:30px;font-weight:500;color:#633806;line-height:1;">'+s2+'</div>'+
+    '</td></tr></table></td>'+
+    '<td width="33%" style="padding-left:6px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">'+
+    '<tr><td style="background:#E6F1FB;border:1px solid #85B7EB;border-radius:8px;padding:14px 16px;">'+
+    '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0C447C;margin-bottom:4px;">Sev 3 &ndash; Major</div>'+
+    '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:30px;font-weight:500;color:#0C447C;line-height:1;">'+s3+'</div>'+
+    '</td></tr></table></td>'+
+    '</tr></table>'+
+
+    /* Pivot tables */
+    pvt(a, 'Overall defect summary')+
+    pvt(a.filter(function(d){return d.release==='1.4';}), 'Release 1.4')+
+    pvt(a.filter(function(d){return d.release==='1.2/1.3';}), 'Release 1.2 / 1.3')+
+
+    /* Detail table */
+    '<h3 style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;font-weight:600;'+
+    'margin:18px 0 6px;color:#1a1a2e;border-bottom:2px solid #F0F014;padding-bottom:4px;">Defect detail</h3>'+
+    '<table width="100%" cellpadding="0" cellspacing="0" border="0" '+
+    'style="border-collapse:collapse;font-family:Segoe UI,Arial,sans-serif;font-size:11px;">'+
+    '<thead><tr style="background:#F0F014;">'+
+    ['Issue key','Status','Created','PCD','Severity','Team','Chunk','Known to client','Release'].map(function(h){
+      return '<th align="left" style="padding:5px 7px;border:1px solid #3b0764;color:#ffffff;font-weight:600;white-space:nowrap;">'+h+'</th>';
+    }).join('')+
+    '</tr></thead><tbody>'+detailRows+'</tbody></table>'+
+
+    '</div></body></html>';
+}
+
+/* ── Copy full report HTML to clipboard (user pastes into Outlook body) ── */
+function copyToClipboard(){
+  var html = buildEmailBody();
+  var er   = document.getElementById('eres');
+
+  /* Modern clipboard API — writes HTML so pasting into Outlook preserves formatting */
+  if(navigator.clipboard && window.ClipboardItem){
+    var blob = new Blob([html],{type:'text/html'});
+    navigator.clipboard.write([new ClipboardItem({'text/html':blob})]).then(function(){
+      er.style.background='#d1fae5';er.style.color='#065f46';er.style.display='block';
+      er.innerHTML='<b>&#10003; Copied!</b> Open a new Outlook email, click in the body, and press <b>Ctrl+V</b> (Windows) or <b>Cmd+V</b> (Mac) to paste the full styled report.';
+    }).catch(function(){fallbackCopy(html,er);});
+  } else {
+    fallbackCopy(html,er);
+  }
+}
+
+function fallbackCopy(html,er){
+  /* Fallback: create a hidden contenteditable div, select its content, copy */
+  var div = document.createElement('div');
+  div.contentEditable = 'true';
+  div.style.cssText   = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  div.innerHTML = html;
+  document.body.appendChild(div);
+  var range = document.createRange();
+  range.selectNodeContents(div);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  try {
+    document.execCommand('copy');
+    er.style.background='#d1fae5';er.style.color='#065f46';er.style.display='block';
+    er.innerHTML='<b>&#10003; Copied!</b> Open a new Outlook email, click in the body, and press <b>Ctrl+V</b> (Windows) or <b>Cmd+V</b> (Mac) to paste the full styled report.';
+  } catch(e){
+    er.style.background='#fee2e2';er.style.color='#991b1b';er.style.display='block';
+    er.innerHTML='Could not copy automatically. Please use <b>Download HTML</b> and attach the file instead.';
+  }
+  sel.removeAllRanges();
+  document.body.removeChild(div);
+}
+
+/* ── Open Outlook desktop (tries Outlook-specific URI schemes) ── */
+function openInOutlook(){
+  var to   = document.getElementById('mTo').value.trim();
+  var subj = document.getElementById('mSj').value||'SKY ATC \u2013 Defect Status Report';
+  var er   = document.getElementById('eres');
+  var isWin= navigator.platform.indexOf('Win')>=0;
+  var isMac= navigator.platform.indexOf('Mac')>=0;
+
+  /* We can't send rich HTML through a URI scheme — those only support plain text body.
+     So we: (1) copy the styled HTML to clipboard, (2) open Outlook compose,
+     (3) show instruction to paste. */
+  var html = buildEmailBody();
+
+  /* Copy HTML to clipboard first */
+  function doCopy(cb){
+    if(navigator.clipboard&&window.ClipboardItem){
+      var blob=new Blob([html],{type:'text/html'});
+      navigator.clipboard.write([new ClipboardItem({'text/html':blob})]).then(cb).catch(cb);
+    } else {
+      var div=document.createElement('div');
+      div.contentEditable='true';
+      div.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0;';
+      div.innerHTML=html;document.body.appendChild(div);
+      var r=document.createRange();r.selectNodeContents(div);
+      var s=window.getSelection();s.removeAllRanges();s.addRange(r);
+      try{document.execCommand('copy');}catch(e){}
+      s.removeAllRanges();document.body.removeChild(div);
+      cb();
+    }
+  }
+
+  function showPasteHint(){
+    er.style.background='#eff6ff';er.style.color='#1e40af';er.style.display='block';
+    er.innerHTML='<b>&#10003; Report copied to clipboard + Outlook opening.</b><br/>'+
+      'In the Outlook compose window: click inside the email body and press '+
+      '<b>Ctrl+V</b> (Windows) or <b>Cmd+V</b> (Mac) to paste the full styled report.';
+  }
+
+  doCopy(function(){
+    showPasteHint();
+    /* Launch Outlook compose via OS-specific protocol */
+    var launched=false;
+    window.addEventListener('blur',function onBl(){launched=true;window.removeEventListener('blur',onBl);});
+    var scheme = isMac ? 'outlookx://compose?to='+encodeURIComponent(to)+'&subject='+encodeURIComponent(subj)
+                       : 'ms-outlook://compose?to='+encodeURIComponent(to)+'&subject='+encodeURIComponent(subj);
+    window.location.href = scheme;
+    setTimeout(function(){
+      if(!launched){
+        /* Outlook not installed / scheme not recognised — open OWA instead */
+        openOWADirect();
+      }
+    },1800);
+  });
+}
+
+/* ── Open Outlook Web App compose (always works) ── */
+function openOWADirect(){
+  var to   = document.getElementById('mTo').value.trim();
+  var subj = document.getElementById('mSj').value||'SKY ATC \u2013 Defect Status Report';
+  var er   = document.getElementById('eres');
+  var html = buildEmailBody();
+
+  /* Copy to clipboard then open OWA */
+  if(navigator.clipboard&&window.ClipboardItem){
+    var blob=new Blob([html],{type:'text/html'});
+    navigator.clipboard.write([new ClipboardItem({'text/html':blob})]).then(function(){
+      doOpenOWA(to,subj,er);
+    }).catch(function(){doOpenOWA(to,subj,er);});
+  } else {
+    doOpenOWA(to,subj,er);
+  }
+}
+
+function doOpenOWA(to,subj,er){
+  var url='https://outlook.office.com/mail/deeplink/compose?'+
+    'to='+encodeURIComponent(to)+
+    '&subject='+encodeURIComponent(subj);
+  window.open(url,'_blank');
+  er.style.background='#eff6ff';er.style.color='#1e40af';er.style.display='block';
+  er.innerHTML='<b>&#10003; Outlook Web opened in a new tab.</b><br/>'+
+    'The report is now in your clipboard. Click inside the email body and press '+
+    '<b>Ctrl+V</b> (Windows) or <b>Cmd+V</b> (Mac) to paste the full styled report.';
+}
+
+function openModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+/* ── Init ── */
+/* ═══════════════════════════════════════
+   CONFIG — STATUS MAPPINGS
+   ═══════════════════════════════════════ */
+/* ── Tab switching ── */
+function switchTab(name){
+  ['dashboard','config'].forEach(function(t){
+    document.getElementById('pane-'+t).classList.toggle('active', t===name);
+    document.getElementById('tab-'+t).classList.toggle('active', t===name);
+  });
+  if(name==='config') renderAllTags();
+}
+
+/* ── Config tab functions ── */
+function renderAllTags(){
+  renderGroup2('tagsEX2',EX,'EX');
+  renderGroup2('tagsGR2',GR,'GR');
+  renderGroup2('tagsRE2',RE,'RE');
+  /* Status inventory */
+  var inv=document.getElementById('statusInventory');
+  if(!inv) return;
+  var allSts=[...new Set(D.map(function(d){return d.status;}))].sort();
+  inv.innerHTML=allSts.map(function(s){
+    var inEX=EX.indexOf(s)>=0, inGR=GR.indexOf(s)>=0, inRE=RE.indexOf(s)>=0;
+    var bg=inEX?'#fee2e2':inGR?'#d1fae5':inRE?'#fef3c7':'#f1f5f9';
+    var col=inEX?'#991b1b':inGR?'#065f46':inRE?'#92400e':'#475569';
+    var lbl=inEX?' (excluded)':inGR?' (fixed)':inRE?' (reopened)':'';
+    return '<span style="background:'+bg+';color:'+col+';padding:3px 10px;border-radius:12px;white-space:nowrap;">'+s+lbl+'</span>';
+  }).join('');
+}
+
+function renderGroup2(containerId, arr, key){
+  var el=document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML=arr.map(function(s,i){
+    return '<span class="cfg-tag" data-key="'+key+'" data-idx="'+i+'">'+s+
+           '<span class="rm" title="Remove">&#215;</span>'+
+           '</span>';
+  }).join('');
+  el.querySelectorAll('.rm').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var p=btn.parentElement;
+      removeTag2(p.dataset.key,parseInt(p.dataset.idx));
+    });
+  });
+}
+
+function removeTag2(key, idx){
+  if(key==='EX') EX.splice(idx,1);
+  else if(key==='GR') GR.splice(idx,1);
+  else if(key==='RE') RE.splice(idx,1);
+  renderAllTags();
+}
+
+function addTag2(key){
+  var inputId='add'+key+'2';
+  var val=document.getElementById(inputId).value.trim();
+  if(!val) return;
+  if(key==='EX'&&EX.indexOf(val)<0) EX.push(val);
+  else if(key==='GR'&&GR.indexOf(val)<0) GR.push(val);
+  else if(key==='RE'&&RE.indexOf(val)<0) RE.push(val);
+  document.getElementById(inputId).value='';
+  renderAllTags();
+}
+
+function applyConfig2(){
+  saveConfig();
+  populateMsRelease();
+  populateMsStatus();
+  go();
+  var msg=document.getElementById('cfgAppliedMsg');
+  if(msg){msg.style.display='inline';setTimeout(function(){msg.style.display='none';},2000);}
+  renderAllTags();
+}
+
+var CFG_DEFAULTS = {
+  EX: ['Closed','Rejected'],
+  GR: ['Resolved (migrated)','Review Complete','In Review','VALIDATED BY QA TEAM','Fixed','Sanity Checked'],
+  RE: ['Reopened (migrated)','Blocked']
+};
+
+function loadConfig(){
+  try{
+    var saved=localStorage.getItem('skyatc_cfg');
+    if(saved){
+      var p=JSON.parse(saved);
+      EX=p.EX||CFG_DEFAULTS.EX.slice();
+      GR=p.GR||CFG_DEFAULTS.GR.slice();
+      RE=p.RE||CFG_DEFAULTS.RE.slice();
+    }
+  }catch(e){}
+}
+
+function saveConfig(){
+  try{localStorage.setItem('skyatc_cfg',JSON.stringify({EX:EX,GR:GR,RE:RE}));}catch(e){}
+}
+
+function resetConfig(){
+  EX=CFG_DEFAULTS.EX.slice();
+  GR=CFG_DEFAULTS.GR.slice();
+  RE=CFG_DEFAULTS.RE.slice();
+  try{localStorage.removeItem('skyatc_cfg');}catch(e){}
+  renderTags();
+  go();
+}
+
+function toggleCfg(){
+  var body=document.getElementById('cfgBody');
+  var arrow=document.getElementById('cfgArrow');
+  var open=body.classList.toggle('open');
+  arrow.innerHTML=open?'&#9662;':'&#9656;';
+  if(open) renderTags();
+}
+
+function renderTags(){
+  renderGroup('tagsEX',EX,'EX');
+  renderGroup('tagsGR',GR,'GR');
+  renderGroup('tagsRE',RE,'RE');
+}
+
+function renderGroup(containerId, arr, key){
+  var el=document.getElementById(containerId);
+  el.innerHTML=arr.map(function(s,i){
+    return '<span class="cfg-tag" data-key="'+key+'" data-idx="'+i+'">'+s+
+           '<span class="rm" title="Remove">&#215;</span>'+
+           '</span>';
+  }).join('');
+  el.querySelectorAll('.rm').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var p=btn.parentElement;
+      removeTag(p.dataset.key,parseInt(p.dataset.idx));
+    });
+  });
+}
+
+function removeTag(key, idx){
+  if(key==='EX') EX.splice(idx,1);
+  else if(key==='GR') GR.splice(idx,1);
+  else if(key==='RE') RE.splice(idx,1);
+  renderTags();
+}
+
+function addTag(key){
+  var inputId='add'+key;
+  var val=document.getElementById(inputId).value.trim();
+  if(!val) return;
+  if(key==='EX'&&EX.indexOf(val)<0) EX.push(val);
+  else if(key==='GR'&&GR.indexOf(val)<0) GR.push(val);
+  else if(key==='RE'&&RE.indexOf(val)<0) RE.push(val);
+  document.getElementById(inputId).value='';
+  renderTags();
+}
+
+function applyConfig(){
+  saveConfig();
+  /* Rebuild status filter dropdown with latest data statuses */
+  populateMsRelease();
+  populateMsStatus();
+  go();
+  /* Show brief confirmation */
+  var btn=document.getElementById('cfgToggleBtn');
+  var orig=btn.innerHTML;
+  btn.innerHTML='<span>&#9662;</span> &#10003; Config applied!';
+  setTimeout(function(){btn.innerHTML=orig;},1800);
+}
+
+function fmtDMY(val){
+  if(!val||val==='TBD') return val||'TBD';
+  var d=new Date(val);
+  if(isNaN(d.getTime())){
+    /* try M/d/yyyy parse */
+    var p=val.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(p) d=new Date(+p[3],+p[1]-1,+p[2]);
+  }
+  if(isNaN(d.getTime())) return val;
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dd=String(d.getDate()).padStart(2,'0');
+  var mmm=months[d.getMonth()];
+  var yy=String(d.getFullYear()).slice(-2);
+  return dd+'-'+mmm+'-'+yy;
+}
+
+window.addEventListener('DOMContentLoaded',function(){
+  loadConfig();
+  populateMsRelease();
+  populateMsStatus();
+  go();
+});
+</script>
+</body>
+</html>
