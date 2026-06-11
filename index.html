@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>SKY ATC - Defect Dashboard v2026.06.11.15:01</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
+<title>SKY ATC - Defect Dashboard v2026.06.11.16:19</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;background:#f0f4f8;color:#1a1a2e;}
+body{max-width:100%;overflow-x:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;background:#f0f4f8;color:#1a1a2e;}
 .hdr{background:#2d1b69;color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
 .hdr h1{font-size:15px;font-weight:500;}
 .hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
@@ -93,7 +93,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
 .main{padding:16px 24px;}
 .sbar{background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:14px 24px;margin-bottom:14px;}
 .sbar b{color:#1e3a5f;font-weight:600;}
-.sevtiles{margin-bottom:14px;}
+.sevtiles{flex-wrap:wrap;margin-bottom:14px;}
 .stile{border-radius:10px;padding:14px 16px;border:1px solid;}
 .s1{background:#FCEBEB;border-color:#F09595;} .s1 *{color:#791F1F;}
 .s2{background:#FAEEDA;border-color:#EF9F27;} .s2 *{color:#633806;}
@@ -101,14 +101,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
 .tlbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
 .tnum{font-size:32px;font-weight:500;line-height:1;}
 .tsub{font-size:11px;margin-top:4px;line-height:1.6;}
-.crow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px;}
-.ccard{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;}
+.crow{flex-wrap:wrap;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px;}
+.ccard{min-width:280px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;}
 .ctit{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:8px;}
 .leg{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:7px;font-size:10px;color:#1a1a2e;}
 .leg span{display:flex;align-items:center;gap:3px;}
 .ld{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
 .shdr{font-size:13px;font-weight:600;color:#1a1a2e;margin:0 0 7px;}
-.tcard{background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:14px;}
+.tcard{overflow-x:auto;background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:14px;}
 .twrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:11.5px;}
 th{background:#BFE4F0;color:#0B4A5A;font-weight:600;padding:6px 9px;white-space:nowrap;border:1px solid #93cfe0;text-align:left;}
@@ -138,12 +138,32 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 .chkrow input{width:auto;}
 .eres{font-size:12px;margin-top:10px;padding:7px 10px;border-radius:5px;display:none;}
 @media print{.ubar,.tbar,.modal-bg,.hdr-r .btn{display:none!important;}body{background:#fff;}.main{padding:8px;}}
+
+/* ── Responsive / SharePoint iframe ── */
+@media (max-width:900px){
+  .hdr{padding:10px 14px;flex-wrap:wrap;gap:6px;}
+  .hdr h1{font-size:14px;}
+  .ubar{padding:8px 14px;flex-wrap:wrap;gap:8px;}
+  .tbar{padding:8px 14px;gap:8px;}
+  .ms-btn{min-width:90px;font-size:11px;}
+  .main{padding:12px 14px;}
+  .crow{flex-direction:column;}
+  .ccard{width:100%!important;min-width:unset!important;}
+  .sevtiles{flex-direction:column;}
+  #tD{font-size:10px;}
+  #tD th,#tD td{padding:4px 6px;}
+}
+@media (max-width:600px){
+  .hdr h1{font-size:12px;}
+  .ms-btn{min-width:70px;font-size:10px;padding:4px 18px 4px 6px;}
+  .sbar{padding:10px 12px;}
+}
 </style>
 </head>
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.15:01</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.16:19</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Data as on 10 Jun 2026 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -1134,7 +1154,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.15:01.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.16:19.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
