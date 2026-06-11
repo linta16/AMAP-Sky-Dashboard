@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.11.21:48</title>
+<title>SKY ATC - Defect Dashboard v2026.06.11.21:57</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -163,7 +163,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.21:48</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.21:57</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -485,25 +485,25 @@ function go(){
       '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:#4c1d95;margin-bottom:12px;text-align:center;">Overall Summary</div>'+
       '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;">'+
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
-          '<div style="font-size:10px;color:#5b21b6;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Total</div>'+
+          '<div style="font-size:12px;color:#5b21b6;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Total</div>'+
           '<div style="font-size:20px;font-weight:700;color:#1e3a5f;line-height:1;">'+D_total+'</div>'+
           '<div style="font-size:10px;color:#374151;margin-top:3px;">Active: <span style="color:#6d28d9;font-weight:600;">'+D_active+'</span></div>'+
         '</div>'+
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
-          '<div style="font-size:10px;color:#92400e;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Planned Dates</div>'+
+          '<div style="font-size:12px;color:#92400e;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Planned Dates</div>'+
           '<div style="font-size:20px;font-weight:700;color:#065f46;line-height:1;">'+withPcd+'</div>'+
           '<div style="font-size:10px;color:#374151;margin-top:3px;"><span style="color:#b45309;font-weight:600;">'+tbd+'</span> TBD</div>'+
         '</div>'+
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
-          '<div style="font-size:10px;color:#065f46;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Fixed</div>'+
+          '<div style="font-size:12px;color:#065f46;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Fixed</div>'+
           '<div style="font-size:20px;font-weight:700;color:#065f46;line-height:1;">'+fx+'</div>'+
         '</div>'+
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
-          '<div style="font-size:10px;color:#92400e;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Reopened</div>'+
+          '<div style="font-size:12px;color:#92400e;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Reopened</div>'+
           '<div style="font-size:20px;font-weight:700;color:#b45309;line-height:1;">'+all.filter(function(d){return RE.indexOf(d.status)>=0;}).length+'</div>'+
         '</div>'+
         '<div style="padding:0 10px;text-align:center;">'+
-          '<div style="font-size:10px;color:#991b1b;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Closed / Rejected</div>'+
+          '<div style="font-size:12px;color:#991b1b;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Closed / Rejected</div>'+
           '<div style="font-size:20px;font-weight:700;color:#dc2626;line-height:1;">'+D_closed+'</div>'+
           '<div style="font-size:10px;color:#374151;margin-top:3px;">'+
             (function(){var lc={};all.filter(function(d){return EX.indexOf(d.status)>=0;}).forEach(function(d){var l=getLabel(d.status);lc[l]=(lc[l]||0)+1;});return Object.keys(lc).sort().map(function(l){return '<span style="color:#991b1b;font-weight:600;">'+lc[l]+'</span>';}).join(' / ');})()+''+
@@ -515,16 +515,16 @@ function go(){
       '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:#4c1d95;margin-bottom:12px;text-align:center;">Today\'s Summary</div>'+
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;">'+
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
-          '<div style="font-size:10px;color:#065f46;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Fixed</div>'+
+          '<div style="font-size:12px;color:#065f46;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Fixed</div>'+
           '<div style="font-size:20px;font-weight:700;color:#065f46;line-height:1;">'+fixedToday+'</div>'+
           '<div style="font-size:10px;color:#374151;margin-top:3px;white-space:nowrap;">Planned - '+plannedToday+'</div>'+
         '</div>'+
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
-          '<div style="font-size:10px;color:#92400e;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Reopened</div>'+
+          '<div style="font-size:12px;color:#92400e;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Reopened</div>'+
           '<div style="font-size:20px;font-weight:700;color:#b45309;line-height:1;">'+all.filter(function(d){return RE.indexOf(d.status)>=0&&d.updated===todayFmt;}).length+'</div>'+
         '</div>'+
         '<div style="padding:0 10px;text-align:center;">'+
-          '<div style="font-size:10px;color:#991b1b;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Closed / Rejected</div>'+
+          '<div style="font-size:12px;color:#991b1b;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Closed / Rejected</div>'+
           '<div style="font-size:20px;font-weight:700;color:#991b1b;line-height:1;">'+closedToday+'</div>'+
         '</div>'+
       '</div>'+
@@ -1211,7 +1211,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.21:48.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.21:57.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
