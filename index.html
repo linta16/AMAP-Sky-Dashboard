@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.11.18:44</title>
+<title>SKY ATC - Defect Dashboard v2026.06.11.19:20</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -163,7 +163,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.18:44</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.19:20</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -497,7 +497,7 @@ function go(){
         '<div style="font-size:28px;font-weight:500;color:#b45309;line-height:1;">'+all.filter(function(d){return RE.indexOf(d.status)>=0;}).length+'</div>'+
         '<div style="font-size:11px;color:#374151;margin-top:4px;">'+RE.join(' &middot; ')+'</div>'+
       '</div>'+
-      '<div style="padding-left:20px;border-left:2px solid #FCA5A5;text-align:center;">'+
+      '<div style="padding-left:20px;text-align:center;">'+
         '<div style="font-size:9px;color:#991b1b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Closed / Rejected</div>'+
         '<div style="font-size:28px;font-weight:500;color:#dc2626;line-height:1;">'+D_closed+'</div>'+
         '<div style="font-size:11px;color:#374151;margin-top:4px;">'+
@@ -1185,7 +1185,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.18:44.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.19:20.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
