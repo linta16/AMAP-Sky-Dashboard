@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.11.19:20</title>
+<title>SKY ATC - Defect Dashboard v2026.06.11.19:37</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -163,7 +163,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.19:20</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.19:37</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -1185,7 +1185,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.19:20.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.19:37.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2023,7 +2023,15 @@ function renderCfgMapping(){
         'title="Edit display label" onclick="this.previousElementSibling.focus();this.previousElementSibling.select();">&#9998;</span>'+
         '</div>'+
       '</td>'+
-      '<td style="padding:8px 12px;vertical-align:middle;"><div class="cfg-tags" style="margin:0;">'+pills+'</div></td>'+
+      '<td style="padding:8px 12px;vertical-align:middle;">'+
+        '<div style="display:flex;align-items:center;gap:6px;">'+
+        '<div class="cfg-tags" style="margin:0;flex:1;">'+pills+'</div>'+
+        '<span class="cfg-row-trigger" data-row-lbl="'+safeLbl+'"'+
+        ' onclick="cfgOpenRowPanel(this)" title="Add or remove statuses"'+
+        ' style="cursor:pointer;font-size:15px;color:'+col+';opacity:.6;padding:1px 6px;'+
+        'border-radius:4px;border:1px solid '+col+';line-height:1;flex-shrink:0;">&#8942;</span>'+
+        '</div>'+
+      '</td>'+
       '<td style="padding:8px 10px;vertical-align:middle;">'+
         '<select onchange="cfgGrpChange(this)" data-lbl="'+safeLbl+'"'+
         ' style="font-size:11px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:5px;'+
@@ -2056,6 +2064,114 @@ function renderCfgMapping(){
 }
 
 /* Group dropdown changed on a row — update all statuses under that label */
+/* Floating status panel for each config row */
+var _panelLbl=null;
+function cfgOpenRowPanel(t){
+  var ex=document.getElementById('cfgRowPanel');
+  if(ex){
+    if(_panelLbl===t.getAttribute('data-row-lbl')){ex.remove();_panelLbl=null;return;}
+    ex.remove();
+  }
+  var lbl=t.getAttribute('data-row-lbl');
+  _panelLbl=lbl;
+  var row=t.closest('tr');
+  var grp=(row.querySelector('select')||{value:'active'}).value;
+  var p=document.createElement('div');
+  p.id='cfgRowPanel';
+  p.style.cssText='position:fixed;background:#fff;border:1px solid #DDD6FE;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.15);z-index:9999;width:280px;padding:12px;font-family:inherit;';
+  var col=grpCol(grp);
+  p.innerHTML='<div style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:8px;">Statuses for <span style="color:'+col+';">'+lbl+'</span></div>'
+    +'<div style="position:relative;margin-bottom:8px;">'
+    +'<input id="cfgPS" type="text" placeholder="Search or type status..." style="width:100%;font-size:11px;padding:5px 8px;border:1px solid #DDD6FE;border-radius:5px;font-family:inherit;box-sizing:border-box;"/>'
+    +'<div id="cfgPD" style="display:none;position:absolute;top:calc(100% + 2px);left:0;width:100%;background:#fff;border:1px solid #DDD6FE;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:100;max-height:150px;overflow-y:auto;"></div>'
+    +'</div>'
+    +'<div id="cfgPP" style="display:flex;flex-wrap:wrap;gap:4px;min-height:24px;"></div>'
+    +'<div style="display:flex;justify-content:flex-end;margin-top:10px;">'
+    +'<button onclick="cfgClosePanel()" style="font-size:11px;padding:4px 12px;border:1px solid #e2e8f0;border-radius:5px;cursor:pointer;background:#fff;">Close</button>'
+    +'</div>';
+  document.body.appendChild(p);
+  var rect=t.getBoundingClientRect();
+  var top=rect.bottom+6;var left=rect.left;
+  if(left+280>window.innerWidth)left=window.innerWidth-290;
+  if(top+300>window.innerHeight)top=rect.top-310;
+  p.style.top=top+'px';p.style.left=left+'px';
+  cfgPP(lbl,grp);
+  var inp=document.getElementById('cfgPS');
+  inp.addEventListener('input',function(){cfgPD(lbl,grp);});
+  inp.addEventListener('focus',function(){cfgPD(lbl,grp);});
+  inp.focus();
+}
+function cfgPP(lbl,grp){
+  var c=document.getElementById('cfgPP');if(!c)return;
+  var col=grpCol(grp);var bg=grpBg(grp);
+  var sts=Object.keys(LABEL_MAP).filter(function(s){return LABEL_MAP[s]===lbl;}).sort();
+  if(!sts.length){c.innerHTML='<span style="font-size:11px;color:#94a3b8;">No statuses yet. Search above to add.</span>';return;}
+  c.innerHTML=sts.map(function(s){
+    var safe=s.replace(/&/g,'&amp;');
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:'+bg+';color:'+col+';font-size:11px;padding:2px 8px;border-radius:12px;">'+safe
+      +'<span data-rm="'+safe+'" style="cursor:pointer;font-weight:700;opacity:.7;">&times;</span></span>';
+  }).join('');
+  c.querySelectorAll('[data-rm]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var s=btn.getAttribute('data-rm');
+      delete LABEL_MAP[s];
+      EX=EX.filter(function(x){return x!==s;});GR=GR.filter(function(x){return x!==s;});RE=RE.filter(function(x){return x!==s;});
+      cfgPP(lbl,grp);renderCfgMapping();renderInventory();
+    });
+  });
+}
+function cfgPD(lbl,grp){
+  var inp=document.getElementById('cfgPS');var dd=document.getElementById('cfgPD');
+  if(!inp||!dd)return;
+  var q=inp.value.toLowerCase();
+  var already=new Set(Object.keys(LABEL_MAP).filter(function(s){return LABEL_MAP[s]===lbl;}));
+  var all=[...new Set(D.map(function(d){return d.status;}))].sort();
+  var filtered=q?all.filter(function(s){return s.toLowerCase().includes(q);}):all;
+  dd.innerHTML='';
+  if(!filtered.length){
+    var em=document.createElement('div');
+    em.style.cssText='padding:6px 10px;font-size:11px;color:#94a3b8;';
+    em.textContent=q?'Press Enter to add "'+inp.value+'"':'No statuses in loaded data';
+    dd.appendChild(em);
+  } else {
+    filtered.forEach(function(s){
+      var here=already.has(s);
+      var el=document.createElement('div');
+      el.style.cssText='padding:6px 10px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:6px;color:'+(here?'#94a3b8':'#1a1a2e')+';';
+      el.innerHTML='<span style="width:14px;color:#059669;">'+(here?'&#10003;':'')+'</span>'+s.replace(/&/g,'&amp;');
+      if(!here)el.addEventListener('mousedown',function(e){e.preventDefault();cfgPA(s,lbl,grp);});
+      dd.appendChild(el);
+    });
+  }
+  dd.style.display='block';
+}
+function cfgPA(s,lbl,grp){
+  delete LABEL_MAP[s];
+  EX=EX.filter(function(x){return x!==s;});GR=GR.filter(function(x){return x!==s;});RE=RE.filter(function(x){return x!==s;});
+  LABEL_MAP[s]=lbl;
+  if(grp==='GR')GR.push(s);else if(grp==='RE')RE.push(s);else if(grp==='EX')EX.push(s);
+  var inp=document.getElementById('cfgPS');if(inp){inp.value='';}
+  var dd=document.getElementById('cfgPD');if(dd)dd.style.display='none';
+  cfgPP(lbl,grp);renderCfgMapping();renderInventory();
+  if(inp)inp.focus();
+}
+function cfgClosePanel(){
+  var p=document.getElementById('cfgRowPanel');if(p)p.remove();_panelLbl=null;
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){cfgClosePanel();}
+  if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='cfgPS'){
+    var s=document.activeElement.value.trim();if(!s)return;
+    var row=document.querySelector('#cfgTableBody tr[data-lbl="'+_panelLbl+'"]');
+    var grp=row?(row.querySelector('select')||{value:'active'}).value:'active';
+    cfgPA(s,_panelLbl,grp);
+  }
+});
+document.addEventListener('click',function(e){
+  var p=document.getElementById('cfgRowPanel');
+  if(p&&!p.contains(e.target)&&!e.target.classList.contains('cfg-row-trigger'))cfgClosePanel();
+});
+
 function cfgInlineLabelEdit(inp){
   var oldLbl=inp.getAttribute('data-orig-lbl');
   var newLbl=inp.value.trim();
