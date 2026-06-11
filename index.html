@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>SKY ATC - Defect Dashboard</title>
+<title>SKY ATC - Defect Dashboard v2026.06.11.14:50</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;background:#f0f4f8;color:#1a1a2e;}
@@ -57,6 +58,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
   border:none;cursor:pointer;font-weight:500;font-family:inherit;}
 .cfg-save:hover{background:#047857;}
 .cfg-reset-lnk{font-size:11px;color:#64748b;cursor:pointer;text-decoration:underline;margin-left:10px;}
+.cfg-srch-dd{display:none;position:absolute;top:calc(100% + 2px);left:0;min-width:220px;background:#fff;border:1px solid #DDD6FE;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.10);z-index:400;max-height:180px;overflow-y:auto;}
+.cfg-srch-dd-item{padding:6px 12px;font-size:11px;cursor:pointer;color:#1a1a2e;}
+.cfg-srch-dd-item:hover{background:#F5F3FF;color:#4c1d95;}
+.cfg-srch-dd-item.already{color:#94a3b8;}
+.lmap-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+.lmap-table th{background:#F5F3FF;color:#4c1d95;font-weight:600;padding:7px 10px;border:1px solid #DDD6FE;text-align:left;font-size:11px;}
+.lmap-table td{padding:5px 8px;border:1px solid #e2e8f0;vertical-align:middle;}
+.lmap-table tr:hover td{background:#fafaf9;}
+.lmap-input{width:100%;font-size:11px;padding:4px 7px;border:1px solid #DDD6FE;border-radius:4px;font-family:inherit;color:#1a1a2e;background:#fff;}
+.lmap-input:focus{outline:none;border-color:#7c3aed;}
 .tbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 24px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
 .ms-wrap{position:relative;display:inline-block;}
 .ms-btn{font-size:12px;padding:5px 26px 5px 10px;border:1px solid #cbd5e1;border-radius:5px;
@@ -102,11 +113,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
 table{width:100%;border-collapse:collapse;font-size:11.5px;}
 th{background:#BFE4F0;color:#0B4A5A;font-weight:600;padding:6px 9px;white-space:nowrap;border:1px solid #93cfe0;text-align:left;}
 td{padding:5px 9px;border:0.5px solid #e2e8f0;white-space:nowrap;color:#1a1a2e;}
+td.tc{text-align:center !important;}
 th.r{text-align:center;} td.r{text-align:center;padding-right:9px;}
 tr.grand td{background:#D6EEF7;font-weight:600;color:#0B4A5A;}
 tr.dr:hover td{background:#f8fafc;}
 td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.mu{color:#CBD5E1;}
 .dhdr th{background:#4c1d95;color:#ffffff;border-color:#3b0764;text-align:left;}
+#tD{width:auto;min-width:100%;table-layout:auto;}
+#tD th,#tD td{white-space:nowrap;}
+
+.dhdr th.tc{text-align:center !important;}
 .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
 .ps1{background:#FCEBEB;color:#791F1F;} .ps2{background:#FAEEDA;color:#633806;} .ps3{background:#E6F1FB;color:#0C447C;}
 .pye{background:#EAF3DE;color:#27500A;} .pno{background:#F1EFE8;color:#444441;}
@@ -127,7 +143,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard</h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.14:50</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Data as on 10 Jun 2026 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -180,9 +196,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
     <div class="ms-dropdown" id="dd-fSv">
       <div class="ms-option ms-all"><input type="checkbox" id="fSv-all" checked onchange="msToggleAll('fSv',this)"/><label for="fSv-all">All severities</label></div>
       <div class="ms-divider"></div>
-      <div class="ms-option"><input type="checkbox" id="fSv-1" value="Sev 1 - Blocker" onchange="msChange('fSv')"/><label for="fSv-1">Sev 1 &ndash; Blocker</label></div>
-      <div class="ms-option"><input type="checkbox" id="fSv-2" value="Sev 2 - Critical" onchange="msChange('fSv')"/><label for="fSv-2">Sev 2 &ndash; Critical</label></div>
-      <div class="ms-option"><input type="checkbox" id="fSv-3" value="Sev 3 - Major" onchange="msChange('fSv')"/><label for="fSv-3">Sev 3 &ndash; Major</label></div>
+      <div id="fSv-opts"></div>
     </div>
   </div>
 
@@ -191,8 +205,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
     <div class="ms-dropdown" id="dd-fT">
       <div class="ms-option ms-all"><input type="checkbox" id="fT-all" checked onchange="msToggleAll('fT',this)"/><label for="fT-all">All teams</label></div>
       <div class="ms-divider"></div>
-      <div class="ms-option"><input type="checkbox" id="fT-MOM" value="MOM" onchange="msChange('fT')"/><label for="fT-MOM">MOM</label></div>
-      <div class="ms-option"><input type="checkbox" id="fT-PB" value="PB" onchange="msChange('fT')"/><label for="fT-PB">PB</label></div>
+      <div id="fT-opts"></div>
     </div>
   </div>
 
@@ -201,8 +214,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
     <div class="ms-dropdown" id="dd-fK">
       <div class="ms-option ms-all"><input type="checkbox" id="fK-all" checked onchange="msToggleAll('fK',this)"/><label for="fK-all">All</label></div>
       <div class="ms-divider"></div>
-      <div class="ms-option"><input type="checkbox" id="fK-yes" value="Yes" onchange="msChange('fK')"/><label for="fK-yes">Yes</label></div>
-      <div class="ms-option"><input type="checkbox" id="fK-no" value="No" onchange="msChange('fK')"/><label for="fK-no">No</label></div>
+      <div id="fK-opts"></div>
     </div>
   </div>
 
@@ -226,8 +238,14 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
   <div class="tcard"><div class="twrap">
     <table id="tD">
       <thead class="dhdr"><tr>
-        <th>Issue key</th><th>Status</th><th>Created</th><th>Planned Dev Completion</th>
-        <th>Severity</th><th>Team</th><th>Chunk</th><th>Known to client</th><th>Release</th>
+        <th>Issue key</th><th>Status</th>
+        <th class="tc">Created</th>
+        <th class="tc">Planned Dev Completion</th>
+        <th class="tc">Severity</th>
+        <th class="tc">Team</th>
+        <th>Chunk</th>
+        <th class="tc">Known to client</th>
+        <th class="tc">Release</th>
       </tr></thead>
       <tbody id="dB"></tbody>
     </table>
@@ -238,54 +256,86 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 
 <!-- ══ TAB: CONFIG ══════════════════════════════════════ -->
 <div class="tab-pane" id="pane-config">
-  <div style="padding:20px 24px;max-width:900px;">
+  <div style="padding:20px 24px;max-width:960px;">
+
     <h2 style="font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">&#9881; Configuration</h2>
-    <p style="font-size:12px;color:#64748b;margin-bottom:20px;">Define which statuses belong to each group. Changes apply immediately to the dashboard.</p>
+    <p style="font-size:12px;color:#64748b;margin-bottom:12px;">Map JIRA statuses to display labels and groups. The group drives summary tiles and pivot colours.</p>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:20px;">
-
-      <div class="cfg-group">
-        <div class="cfg-group-title">&#128308; Closed / Rejected statuses</div>
-        <p style="font-size:11px;color:#64748b;margin-bottom:8px;">These are excluded from active defect counts.</p>
-        <div class="cfg-tags" id="tagsEX2"></div>
-        <div class="cfg-add">
-          <input type="text" id="addEX2" placeholder="Type status name…" onkeydown="if(event.key==='Enter')addTag2('EX')"/>
-          <button onclick="addTag2('EX')">+ Add</button>
-        </div>
-      </div>
-
-      <div class="cfg-group">
-        <div class="cfg-group-title">&#128994; Fixed / In review statuses</div>
-        <p style="font-size:11px;color:#64748b;margin-bottom:8px;">Counted in the Fixed / In review summary tile.</p>
-        <div class="cfg-tags" id="tagsGR2"></div>
-        <div class="cfg-add">
-          <input type="text" id="addGR2" placeholder="Type status name…" onkeydown="if(event.key==='Enter')addTag2('GR')"/>
-          <button onclick="addTag2('GR')">+ Add</button>
-        </div>
-      </div>
-
-      <div class="cfg-group">
-        <div class="cfg-group-title">&#128997; Reopened / Blocked statuses</div>
-        <p style="font-size:11px;color:#64748b;margin-bottom:8px;">Highlighted in red in pivot tables. Counted in Reopened tile.</p>
-        <div class="cfg-tags" id="tagsRE2"></div>
-        <div class="cfg-add">
-          <input type="text" id="addRE2" placeholder="Type status name…" onkeydown="if(event.key==='Enter')addTag2('RE')"/>
-          <button onclick="addTag2('RE')">+ Add</button>
-        </div>
-      </div>
-
+    <!-- Legend -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;font-size:11px;">
+      <span style="background:#d1fae5;color:#065f46;padding:3px 12px;border-radius:20px;font-weight:500;">Fixed / In review &#8594; Fixed tile, green in pivots</span>
+      <span style="background:#fef3c7;color:#92400e;padding:3px 12px;border-radius:20px;font-weight:500;">Reopened &#8594; Reopened tile, red in pivots</span>
+      <span style="background:#fee2e2;color:#991b1b;padding:3px 12px;border-radius:20px;font-weight:500;">Closed / Rejected &#8594; excluded from active counts</span>
+      <span style="background:#EDE9FE;color:#4c1d95;padding:3px 12px;border-radius:20px;font-weight:500;">Active &#8594; default</span>
     </div>
 
-    <div style="display:flex;align-items:center;gap:12px;">
-      <button class="cfg-save" onclick="applyConfig2()">&#10003; Apply &amp; refresh dashboard</button>
-      <span class="cfg-reset-lnk" onclick="resetConfig()">Reset to defaults</span>
+    <!-- Add bar -->
+    <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;padding:12px 14px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">Add / update a mapping</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:160px;position:relative;">
+          <label style="font-size:10px;color:#64748b;font-weight:500;">Display label <span style="color:#94a3b8;">(type new or pick existing)</span></label>
+          <input type="text" id="cfgNewLabel" class="lmap-input"
+                 placeholder="e.g. Fixed, In Progress…"
+                 oninput="cfgLabelDD()" onfocus="cfgLabelDD()"/>
+          <div id="cfgDD-label" class="cfg-srch-dd"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:220px;position:relative;">
+          <label style="font-size:10px;color:#64748b;font-weight:500;">JIRA status</label>
+          <input type="text" id="cfgNewStatus" class="lmap-input"
+                 placeholder="&#128269; Search or type status…"
+                 oninput="cfgStatusDD()" onfocus="cfgStatusDD()"/>
+          <div id="cfgDD-status" class="cfg-srch-dd"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:160px;">
+          <label style="font-size:10px;color:#64748b;font-weight:500;">Group</label>
+          <select id="cfgNewGrp"
+                  style="font-size:12px;padding:5px 8px;border:1px solid #DDD6FE;border-radius:5px;
+                         font-family:inherit;background:#fff;color:#1a1a2e;">
+            <option value="active">Active</option>
+            <option value="GR">Fixed / In review</option>
+            <option value="RE">Reopened</option>
+            <option value="EX">Closed / Rejected</option>
+          </select>
+        </div>
+
+        <button class="cfg-save" style="padding:6px 20px;white-space:nowrap;margin-bottom:1px;"
+                onclick="cfgAddMapping()">+ Add</button>
+
+      </div>
+    </div>
+
+    <!-- Mapping table: one row per label -->
+    <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#F5F3FF;">
+            <th style="padding:9px 12px;text-align:left;color:#4c1d95;font-weight:600;border-bottom:1px solid #DDD6FE;width:18%;">Display Label</th>
+            <th style="padding:9px 12px;text-align:left;color:#4c1d95;font-weight:600;border-bottom:1px solid #DDD6FE;width:54%;">JIRA Statuses</th>
+            <th style="padding:9px 12px;text-align:left;color:#4c1d95;font-weight:600;border-bottom:1px solid #DDD6FE;width:20%;">Group</th>
+            <th style="padding:9px 12px;text-align:center;color:#4c1d95;font-weight:600;border-bottom:1px solid #DDD6FE;width:8%;">Remove</th>
+          </tr>
+        </thead>
+        <tbody id="cfgTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Apply / Reset -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <button class="cfg-save" onclick="cfgApply()">&#10003; Apply &amp; refresh dashboard</button>
+      <span class="cfg-reset-lnk" onclick="cfgReset()">Reset to defaults</span>
       <span id="cfgAppliedMsg" style="font-size:12px;color:#059669;display:none;">&#10003; Applied!</span>
     </div>
 
-    <div style="margin-top:24px;padding:14px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-      <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">Current status inventory (from loaded data)</div>
+    <!-- Status inventory -->
+    <div style="padding:14px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+      <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">Status inventory from loaded data</div>
       <div id="statusInventory" style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px;"></div>
     </div>
+
   </div>
 </div><!-- end pane-config -->
 
@@ -308,11 +358,13 @@ Regards</textarea>
     <div class="eres" id="eres"></div>
     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px 14px;margin-top:12px;font-size:11px;color:#475569;line-height:1.8;">
       <b style="color:#1a1a2e;font-size:12px;">How each option works</b><br/>
-      <b style="color:#1a1a2e;">&#128203; Copy to clipboard</b> &mdash; copies the full styled report. Open a new Outlook email, click in the body, and press <b>Ctrl+V</b> (Windows) or <b>Cmd+V</b> (Mac) to paste.<br/>
+      <b style="color:#1a1a2e;">&#128247; Copy as Image</b> &mdash; captures the full dashboard as an image. Paste directly into Outlook, Teams or any app with <b>Ctrl+V</b>. Charts and formatting are pixel-perfect.<br/>
+      <b style="color:#1a1a2e;">&#128203; Copy to clipboard</b> &mdash; copies styled HTML. Best for Outlook on desktop.<br/>
       <b style="color:#1a1a2e;">&#11015; Download HTML</b> &mdash; saves the report as a file you can attach to any email.
     </div>
     <div class="modal-btns">
       <button class="btn bx" onclick="closeModal()">Cancel</button>
+      <button class="btn bg" onclick="copyAsImage()" style="background:#059669;color:#fff;">&#128247; Copy as Image</button>
       <button class="btn bs" onclick="dlReport()">&#11015; Download</button>
       <button class="btn bp" onclick="copyToClipboard()">&#128203; Copy to clipboard</button>
     </div>
@@ -326,8 +378,29 @@ Regards</textarea>
 ═══════════════════════════════════════════════ */
 var D=[{"key": "AMAP-67630", "status": "Closed", "created": "30-May-26", "pcd": "03-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68118", "status": "VALIDATED BY QA TEAM", "created": "07-Jun-26", "pcd": "08-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "IBMS Campaign Integration - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": true}, {"key": "AMAP-68245", "status": "Review Complete", "created": "09-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 1 - Blocker", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68046", "status": "Closed", "created": "05-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "GO UI CR Slot 2 - Order management page full editabilty - R1.4", "knownClient": "Yes", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68044", "status": "Sanity Checked", "created": "05-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Discount & Bonus - File Upload - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67999", "status": "Review Complete", "created": "04-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 1 - Blocker", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67994", "status": "Review Complete", "created": "04-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 1 - Blocker", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67991", "status": "Review Complete", "created": "04-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67713", "status": "Review Complete", "created": "01-Jun-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Wallet Enhancement - CR3 - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67229", "status": "Review Complete", "created": "26-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67228", "status": "VALIDATED BY QA TEAM", "created": "26-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67043", "status": "Review Complete", "created": "22-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67019", "status": "Sanity Checked", "created": "21-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-66968", "status": "Review Complete", "created": "21-May-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66073", "status": "VALIDATED BY QA TEAM", "created": "12-May-26", "pcd": "09-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-66015", "status": "Review Complete", "created": "11-May-26", "pcd": "09-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68140", "status": "In Review", "created": "08-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68137", "status": "Review Complete", "created": "08-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68124", "status": "Review Complete", "created": "07-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "GO UI CR Slot 2 - Premium position, Status machine - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67998", "status": "Review Complete", "created": "04-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "PB", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67729", "status": "In Review", "created": "02-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67721", "status": "In Review", "created": "02-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67718", "status": "In Review", "created": "02-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67694", "status": "Dev In Progress", "created": "01-Jun-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67261", "status": "Review Complete", "created": "27-May-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "PB [N]", "chunk": "GO UI CR Slot 2 - Premium position, Status machine - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67230", "status": "Blocked", "created": "26-May-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67198", "status": "Review Complete", "created": "26-May-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67011", "status": "Review Complete", "created": "21-May-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-66999", "status": "Fixed", "created": "21-May-26", "pcd": "10-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Catalogue Integration - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": true}, {"key": "AMAP-66853", "status": "Resolved (migrated)", "created": "19-May-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-65702", "status": "Pending Clarification - QA", "created": "11-May-26", "pcd": "10-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68232", "status": "Dev In Progress", "created": "09-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68226", "status": "Dev In Progress", "created": "08-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68133", "status": "Review Complete", "created": "08-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67988", "status": "Pending Clarification – Functional", "created": "04-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67974", "status": "Dev In Progress", "created": "04-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67771", "status": "Impact Assessment", "created": "03-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67764", "status": "Blocked", "created": "03-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67727", "status": "Dev In Progress", "created": "02-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67726", "status": "Dev In Progress", "created": "02-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67725", "status": "Blocked", "created": "02-Jun-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67567", "status": "Dev In Progress", "created": "29-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67258", "status": "Dev In Progress", "created": "27-May-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67112", "status": "Blocked", "created": "25-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67017", "status": "Review Complete", "created": "21-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "GO UI CR Slot 2 - Order management page full editabilty - R1.4", "knownClient": "Yes", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66995", "status": "Impact Assessment", "created": "21-May-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66980", "status": "Impact Assessment", "created": "21-May-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66972", "status": "Impact Assessment", "created": "21-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66880", "status": "Closed", "created": "20-May-26", "pcd": "11-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-65674", "status": "Dev In Progress", "created": "08-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-65596", "status": "Dev In Progress", "created": "07-May-26", "pcd": "11-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "sales agent portfolio & visbility rule - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": true}, {"key": "AMAP-68254", "status": "New", "created": "09-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68253", "status": "Impact Assessment", "created": "09-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68237", "status": "Impact Assessment", "created": "09-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68234", "status": "Impact Assessment", "created": "09-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68165", "status": "Impact Assessment", "created": "08-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 1 - Blocker", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-68055", "status": "Impact Assessment", "created": "05-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68052", "status": "Dev In Progress", "created": "05-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-68040", "status": "In Review", "created": "05-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68002", "status": "In Review", "created": "04-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67720", "status": "Impact Assessment", "created": "02-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67717", "status": "Impact Assessment", "created": "02-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67685", "status": "Impact Assessment", "created": "01-Jun-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67277", "status": "Dev In Progress", "created": "27-May-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67276", "status": "Impact Assessment", "created": "27-May-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67239", "status": "Dev In Progress", "created": "26-May-26", "pcd": "12-Jun-26", "severity": "Sev 1 - Blocker", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": true}, {"key": "AMAP-67232", "status": "Blocked", "created": "26-May-26", "pcd": "12-Jun-26", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67227", "status": "Blocked", "created": "26-May-26", "pcd": "12-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67158", "status": "Impact Assessment", "created": "25-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67051", "status": "Impact Assessment", "created": "22-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67049", "status": "Impact Assessment", "created": "22-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-67040", "status": "Impact Assessment", "created": "22-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-66918", "status": "Impact Assessment", "created": "20-May-26", "pcd": "15-Jun-26", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": true}, {"key": "AMAP-68283", "status": "New", "created": "09-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68282", "status": "Pending Clarification – Functional", "created": "09-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68280", "status": "Pending Clarification – Functional", "created": "09-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68247", "status": "New", "created": "09-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68230", "status": "Impact Assessment", "created": "08-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68182", "status": "New", "created": "08-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-68120", "status": "Impact Assessment", "created": "07-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "PB", "chunk": "IBMS Campaign Integration - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": false}, {"key": "AMAP-67986", "status": "Pending Clarification – Client", "created": "04-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Catalogue Integration - R1.3", "knownClient": "Yes", "release": "R1.3", "hasPcd": false}, {"key": "AMAP-67985", "status": "New", "created": "04-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67724", "status": "Blocked", "created": "02-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67712", "status": "Pending Clarification – Functional", "created": "01-Jun-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67708", "status": "Reopened (migrated)", "created": "01-Jun-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": false}, {"key": "AMAP-67609", "status": "Pending Clarification - QA", "created": "29-May-26", "pcd": "TBD", "severity": "Sev 2 - Critical", "team": "PB [N]", "chunk": "GO UI CR Slot 2 - Order management page full editabilty - R1.4", "knownClient": "Yes", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67566", "status": "Reopened (migrated)", "created": "29-May-26", "pcd": "TBD", "severity": "Sev 1 - Blocker", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67528", "status": "Blocked", "created": "28-May-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "PB", "chunk": "Versioning & Comparison - R1.2", "knownClient": "Yes", "release": "R1.2", "hasPcd": false}, {"key": "AMAP-67187", "status": "Pending Clarification – Functional", "created": "26-May-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-67111", "status": "Dev In Progress", "created": "24-May-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Approval Processes - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}, {"key": "AMAP-66970", "status": "Pending Clarification – Functional", "created": "21-May-26", "pcd": "TBD", "severity": "Sev 3 - Major", "team": "MOM", "chunk": "Agency Campaign Integration - R1.4", "knownClient": "No", "release": "R1.4", "hasPcd": false}];
 
-var EX=['Closed','Rejected'],GR=['Resolved (migrated)','Review Complete','In Review','VALIDATED BY QA TEAM','Fixed','Sanity Checked'],RE=['Reopened (migrated)','Blocked'];
-var PC=['TBD','03-Jun-26','08-Jun-26','09-Jun-26','10-Jun-26','11-Jun-26','12-Jun-26','15-Jun-26'];
+/* EX/GR/RE are now DERIVED from LABEL_MAP — no separate config needed.
+   Label "Fixed"              → GR (Fixed/In review)
+   Label "Closed"/"Rejected"  → EX (excluded from active)
+   Label "Reopened"           → RE (Reopened tile)
+   Everything else            → Active */
+var GR_LABEL  = 'Fixed';       /* display labels that mean "fixed" */
+var EX_LABELS = ['Closed','Rejected'];
+var RE_LABEL  = 'Reopened';
+
+function buildArrays(){
+  var ex=[],gr=[],re=[];
+  Object.keys(LABEL_MAP).forEach(function(status){
+    var lbl=LABEL_MAP[status];
+    if(EX_LABELS.indexOf(lbl)>=0) ex.push(status);
+    else if(lbl===GR_LABEL)       gr.push(status);
+    else if(lbl===RE_LABEL)       re.push(status);
+  });
+  /* Also include any status whose raw name matches (fallback for unmapped statuses) */
+  EX_LABELS.forEach(function(l){if(ex.indexOf(l)<0&&Object.keys(LABEL_MAP).indexOf(l)<0)ex.push(l);});
+  EX=ex; GR=gr; RE=re;
+}
+var EX=[],GR=[],RE=[];
+var PC=[]; /* PC array no longer used */
 var SC={'Blocked':'#dc2626','Dev In Progress':'#d97706','Impact Assessment':'#378ADD','In Review':'#1D9E75','New':'#888780','Pending Clarification \u2013 Functional':'#7F77DD','Reopened (migrated)':'#A32D2D','Resolved (migrated)':'#059669','Review Complete':'#0F6E56','VALIDATED BY QA TEAM':'#639922'};
 var CH={};
 
@@ -335,11 +408,12 @@ var CH={};
    Returns [] if "All" checked, otherwise array of selected values. */
 function gv(id){
   var allCb=document.getElementById(id+'-all');
-  if(!allCb) return [];
-  if(allCb.checked) return [];   /* empty = no filter */
+  if(!allCb) return [];           /* element not ready — no filter */
+  if(allCb.checked) return [];   /* All selected — no filter */
   var boxes=document.querySelectorAll('#dd-'+id+' input[type=checkbox]:not(#'+id+'-all)');
   var vals=[];
-  boxes.forEach(function(b){if(b.checked) vals.push(b.value);});
+  boxes.forEach(function(b){if(b.checked&&b.value) vals.push(b.value);});
+  if(!vals.length) return [];    /* nothing checked — treat as All */
   return vals;
 }
 function cn(a,k,v){return a.filter(function(d){return d[k]===v;}).length;}
@@ -407,7 +481,11 @@ function go(){
       s2=a.filter(function(d){return d.severity==='Sev 2 - Critical';}),
       s3=a.filter(function(d){return d.severity==='Sev 3 - Major';});
 
-  function sub(arr){var m={};arr.forEach(function(d){m[d.status]=(m[d.status]||0)+1;});return Object.keys(m).map(function(k){return m[k]+' '+k;}).join(' &middot; ')||'&mdash;';}
+  function sub(arr){
+    var m={};
+    arr.forEach(function(d){var lbl=getLabel(d.status);m[lbl]=(m[lbl]||0)+1;});
+    return Object.keys(m).sort().map(function(k){return m[k]+' '+k;}).join(' &middot; ')||'&mdash;';
+  }
   document.getElementById('sv').innerHTML=
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">'+
     tile('s1','Sev 1 &ndash; Blocker',s1.length,sub(s1),a.length)+
@@ -417,29 +495,51 @@ function go(){
 
   Object.values(CH).forEach(function(c){if(c)c.destroy();});CH={};
   var sts=[...new Set(a.map(function(d){return d.status;}))].sort();
-  leg('lSt',sts,sts.map(function(s){return SC[s]||'#888';}));
-  CH.st=dn('cSt',sts,sts.map(function(s){return cn(a,'status',s);}),sts.map(function(s){return SC[s]||'#888';}));
+  /* Group chart data by display label */
+  var stLblMap={};
+  sts.forEach(function(s){
+    var lbl=getLabel(s);
+    if(!stLblMap[lbl]){stLblMap[lbl]={count:0,color:SC[s]||'#888'};}
+    stLblMap[lbl].count+=cn(a,'status',s);
+  });
+  var stGrpLabels=Object.keys(stLblMap).sort();
+  var stGrpCounts=stGrpLabels.map(function(l){return stLblMap[l].count;});
+  var stGrpColors=stGrpLabels.map(function(l){return stLblMap[l].color;});
+  leg('lSt',stGrpLabels,stGrpColors);
+  CH.st=dn('cSt',stGrpLabels,stGrpCounts,stGrpColors);
   leg('lSv',['Sev 1 \u2013 Blocker','Sev 2 \u2013 Critical','Sev 3 \u2013 Major'],['#dc2626','#d97706','#378ADD']);
   CH.sv=dn('cSv',['Sev 1 - Blocker','Sev 2 - Critical','Sev 3 - Major'],[s1.length,s2.length,s3.length],['#dc2626','#d97706','#378ADD']);
-  leg('lTm',['MOM','PB'],['#534AB7','#1D9E75']);
-  CH.tm=dn('cTm',['MOM','PB'],[cn(a,'team','MOM'),cn(a,'team','PB')],['#534AB7','#1D9E75']);
+  /* Build team chart dynamically from all unique teams in filtered data */
+  var teamPalette=['#534AB7','#1D9E75','#F59E0B','#DC2626','#7C3AED','#0EA5E9','#10B981'];
+  var allTeams=[...new Set(a.map(function(d){return d.team;}))].filter(Boolean).sort();
+  var teamColors=allTeams.map(function(t,i){return teamPalette[i%teamPalette.length];});
+  var teamCounts=allTeams.map(function(t){return cn(a,'team',t);});
+  leg('lTm',allTeams,teamColors);
+  CH.tm=dn('cTm',allTeams,teamCounts,teamColors);
 
   /* Pivot tables use FULL unfiltered active dataset — filters only apply to tiles/charts/detail */
-  var allActive=D.filter(function(d){return EX.indexOf(d.status)<0;});
-  pv('tA',allActive,null);
+  /* Pivots use filtered active set 'a' — same filters as tiles/charts */
+  var allActive=D.filter(function(d){return EX.indexOf(d.status)<0;}); /* kept for email body */
+  pv('tA',a,null);
   document.getElementById('s14').style.display='';
   document.getElementById('s12').style.display='';
   document.getElementById('s13').style.display='';
-  pv('t14',allActive,'R1.4');
-  pv('t12',allActive,'R1.2');
-  pv('t13',allActive,'R1.3');
+  pv('t14',a,'R1.4');
+  pv('t12',a,'R1.2');
+  pv('t13',a,'R1.3');
 
-  document.getElementById('dB').innerHTML=all.map(function(d){
+  document.getElementById('dB').innerHTML=a.map(function(d){
     var g=GR.indexOf(d.status)>=0,r=RE.indexOf(d.status)>=0,c=g?'gn':r?'rd':'';
-    return '<tr class="dr"><td>'+d.key+'</td><td class="'+c+'">'+d.status+'</td><td>'+fmtDMY(d.created)+'</td><td>'+fmtDMY(d.pcd)+'</td>'+
-      '<td>'+sp(d.severity)+'</td><td>'+d.team+'</td><td style="white-space:normal;max-width:200px;">'+d.chunk+'</td>'+
-      '<td><span class="pill '+(d.knownClient==='Yes'?'pye':'pno')+'">'+d.knownClient+'</span></td>'+
-      '<td>'+d.release+'</td></tr>';
+    return '<tr class="dr">'+
+      '<td>'+d.key+'</td>'+
+      '<td class="'+c+'">'+getLabel(d.status)+'</td>'+
+      '<td class="tc">'+fmtDMY(d.created)+'</td>'+
+      '<td class="tc">'+fmtDMY(d.pcd)+'</td>'+
+      '<td class="tc">'+sp(d.severity)+'</td>'+
+      '<td class="tc">'+d.team+'</td>'+
+      '<td style="white-space:nowrap;">'+d.chunk+'</td>'+
+      '<td class="tc"><span class="pill '+(d.knownClient==="Yes"?"pye":"pno")+'">'+d.knownClient+'</span></td>'+
+      '<td class="tc">'+d.release+'</td></tr>';
   }).join('');
 }
 
@@ -565,20 +665,61 @@ function leg(id,lb,cl){document.getElementById(id).innerHTML=lb.map(function(l,i
 
 function pv(tid,data,rel){
   var sub=rel?data.filter(function(d){return d.release===rel;}):data;
-  var sm={};sub.forEach(function(d){if(!sm[d.status])sm[d.status]={};sm[d.status][d.pcd]=(sm[d.status][d.pcd]||0)+1;});
-  var sts=Object.keys(sm).sort(),cols=PC.filter(function(c){return sts.some(function(s){return sm[s][c]>0;});});
-  var h='<thead><tr><th>Status</th>'+cols.map(function(c){return '<th class="r">'+c+'</th>';}).join('')+'<th class="r">Grand total</th></tr></thead><tbody>';
-  sts.forEach(function(st){
-    var g=GR.indexOf(st)>=0,r=RE.indexOf(st)>=0,c=g?'gn':r?'rd':'';var tot=0;
-    var cells=cols.map(function(col){var v=sm[st][col]||0;tot+=v;return '<td class="r '+(v?c:'mu')+'">'+(v||'&ndash;')+'</td>';}).join('');
-    h+='<tr class="dr"><td class="'+c+'">'+st+'</td>'+cells+'<td class="r '+c+'"><b>'+tot+'</b></td></tr>';
+
+  /* Group by DISPLAY LABEL (not raw status) — multiple JIRA statuses merge into one row */
+  var sm={};
+  sub.forEach(function(d){
+    var lbl=getLabel(d.status);  /* e.g. "Dev In Progress" → "In Progress" */
+    if(!sm[lbl])sm[lbl]={};
+    sm[lbl][d.pcd]=(sm[lbl][d.pcd]||0)+1;
   });
-  var tots={};cols.forEach(function(c){tots[c]=sts.reduce(function(s,st){return s+(sm[st][c]||0);},0);});
+
+  /* Determine colour class based on whether ANY raw status mapping for this label is in GR/RE */
+  var lblClass={};
+  sub.forEach(function(d){
+    var lbl=getLabel(d.status);
+    if(!lblClass[lbl]){
+      if(GR.indexOf(d.status)>=0) lblClass[lbl]='gn';
+      else if(RE.indexOf(d.status)>=0) lblClass[lbl]='rd';
+      else lblClass[lbl]='';
+    }
+  });
+
+  var sts=Object.keys(sm).sort();
+  /* Build date cols dynamically */
+  var allPcds=new Set();
+  sts.forEach(function(s){Object.keys(sm[s]).forEach(function(c){allPcds.add(c);});});
+  var dateCols=[...allPcds].filter(function(c){return c!=='TBD';}).sort(function(a,b){
+    var pa=a.split('-'),pb=b.split('-');
+    var MO={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    var da=new Date(2000+parseInt(pa[2]),MO[pa[1]]-1,parseInt(pa[0]));
+    var db=new Date(2000+parseInt(pb[2]),MO[pb[1]]-1,parseInt(pb[0]));
+    return da-db;
+  });
+  var cols=allPcds.has('TBD')?['TBD'].concat(dateCols):dateCols;
+
+  var h='<thead><tr><th>Status</th>'+
+    cols.map(function(c){return '<th class="r">'+c+'</th>';}).join('')+
+    '<th class="r">Grand total</th></tr></thead><tbody>';
+
+  sts.forEach(function(st){
+    var c=lblClass[st]||''; var tot=0;
+    var cells=cols.map(function(col){
+      var v=sm[st][col]||0;tot+=v;
+      return '<td class="r '+(v?c:'mu')+'">'+(v||'&ndash;')+'</td>';
+    }).join('');
+    h+='<tr class="dr"><td class="'+c+'">'+st+'</td>'+cells+
+       '<td class="r '+c+'"><b>'+tot+'</b></td></tr>';
+  });
+
+  var tots={};
+  cols.forEach(function(c){tots[c]=sts.reduce(function(s,st){return s+(sm[st][c]||0);},0);});
   var grand=Object.values(tots).reduce(function(a,b){return a+b;},0);
-  h+='<tr class="grand"><td>Grand total</td>'+cols.map(function(c){return '<td class="r">'+tots[c]+'</td>';}).join('')+'<td class="r"><b>'+grand+'</b></td></tr></tbody>';
+  h+='<tr class="grand"><td>Grand total</td>'+
+    cols.map(function(c){return '<td class="r">'+tots[c]+'</td>';}).join('')+
+    '<td class="r"><b>'+grand+'</b></td></tr></tbody>';
   document.getElementById(tid).innerHTML=h;
 }
-
 function sp(s){var c=s==='Sev 1 - Blocker'?'ps1':s==='Sev 2 - Critical'?'ps2':'ps3';return '<span class="pill '+c+'">'+s+'</span>';}
 /* ── Multiselect helpers ── */
 function toggleMs(id){
@@ -588,6 +729,11 @@ function toggleMs(id){
   });
   dd.classList.toggle('open');
 }
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&e.target.getAttribute('data-row-enter')){
+    cfgAddToLabel(e.target); e.preventDefault();
+  }
+});
 document.addEventListener('click',function(e){
   if(!e.target.closest('.ms-wrap')){
     document.querySelectorAll('.ms-dropdown.open').forEach(function(el){el.classList.remove('open');});
@@ -616,6 +762,58 @@ function updateMsBtn(id){
   else if(n===1){btn.innerHTML=(lbls[id]||id)+': '+checked[0].parentElement.querySelector('label').textContent;btn.classList.add('has-sel');}
   else{btn.innerHTML=(lbls[id]||id)+' <span class="ms-count">'+n+'</span>';btn.classList.add('has-sel');}
 }
+function populateMsSeverity(){
+  var c=document.getElementById('fSv-opts');if(!c)return;
+  /* Sort by severity number so Sev 1 appears first */
+  var sevs=[...new Set(D.map(function(d){return d.severity;}))].filter(Boolean).sort(function(a,b){
+    var na=parseInt(a.replace(/[^0-9]/g,''))||99;
+    var nb=parseInt(b.replace(/[^0-9]/g,''))||99;
+    return na-nb;
+  });
+  var html='';
+  sevs.forEach(function(s,i){
+    var sid='fSv-s'+i;
+    var safeVal=s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    html+='<div class="ms-option"><input type="checkbox" id="'+sid+'" value="'+safeVal+'" data-ms="fSv"/>'+
+          '<label for="'+sid+'">'+s+'</label></div>';
+  });
+  c.innerHTML=html;
+  c.querySelectorAll('input[data-ms]').forEach(function(b){
+    b.addEventListener('change',function(){msChange(b.getAttribute('data-ms'));});
+  });
+}
+
+function populateMsKnown(){
+  var c=document.getElementById('fK-opts');if(!c)return;
+  var vals=[...new Set(D.map(function(d){return d.knownClient;}))].filter(Boolean).sort();
+  var html='';
+  vals.forEach(function(v,i){
+    var kid='fK-k'+i;
+    html+='<div class="ms-option"><input type="checkbox" id="'+kid+'" value="'+v+'" data-ms="fK"/>'+
+          '<label for="'+kid+'">'+v+'</label></div>';
+  });
+  c.innerHTML=html;
+  c.querySelectorAll('input[data-ms]').forEach(function(b){
+    b.addEventListener('change',function(){msChange(b.getAttribute('data-ms'));});
+  });
+}
+
+function populateMsTeam(){
+  var c=document.getElementById('fT-opts');if(!c)return;
+  var teams=[...new Set(D.map(function(d){return d.team;}))].filter(Boolean).sort();
+  var html='';
+  teams.forEach(function(t,i){
+    var tid='fT-t'+i;
+    var safeVal=t.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    html+='<div class="ms-option"><input type="checkbox" id="'+tid+'" value="'+safeVal+'" data-ms="fT"/>'+
+          '<label for="'+tid+'">'+t+'</label></div>';
+  });
+  c.innerHTML=html;
+  c.querySelectorAll('input[data-ms]').forEach(function(b){
+    b.addEventListener('change',function(){msChange(b.getAttribute('data-ms'));});
+  });
+}
+
 function populateMsRelease(){
   var c=document.getElementById('fR-opts');if(!c)return;
   var rels=[...new Set(D.map(function(d){return d.release;}))].filter(function(r){return r&&r!=='Unknown';}).sort();
@@ -638,8 +836,10 @@ function populateMsStatus(){
   sts.forEach(function(s,i){
     var sid='fS-s'+i;
     var safeVal=s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    var dispLbl=getLabel(s); /* show friendly label but filter on raw value */
+    var dispTxt=dispLbl!==s?dispLbl+' ('+s+')':s;
     html+='<div class="ms-option"><input type="checkbox" id="'+sid+'" value="'+safeVal+'" data-ms="fS"/>'+
-          '<label for="'+sid+'">'+s+'</label></div>';
+          '<label for="'+sid+'">'+dispTxt+'</label></div>';
   });
   c.innerHTML=html;
   c.querySelectorAll('input[data-ms]').forEach(function(b){
@@ -651,9 +851,11 @@ function populateMsStatus(){
 function rst(){
   ['fR','fS','fSv','fT','fK'].forEach(function(id){
     var allCb=document.getElementById(id+'-all');
-    if(allCb) allCb.checked=true;
-    document.querySelectorAll('#dd-'+id+' input[type=checkbox]:not(#'+id+'-all)')
-      .forEach(function(b){b.checked=false;});
+    if(allCb){ allCb.checked=true; allCb.removeAttribute('disabled'); }
+    document.querySelectorAll('#dd-'+id+' input[type=checkbox]').forEach(function(b){
+      if(b.id===id+'-all') b.checked=true;
+      else b.checked=false;
+    });
     updateMsBtn(id);
   });
   go();
@@ -712,7 +914,21 @@ function handleUpload(inp){
       document.getElementById('dataAsOn').textContent='Data as on '+displayDate;
       populateMsRelease();
       populateMsStatus();
+      populateMsTeam();
+      populateMsSeverity();
+      populateMsKnown();
+      /* Auto-add any new statuses from this extract to LABEL_MAP (using status name as default label) */
+      D.forEach(function(d){
+        if(d.status && !LABEL_MAP[d.status]) LABEL_MAP[d.status]=d.status;
+      });
+      buildArrays(); /* Rebuild EX/GR/RE from updated LABEL_MAP */
       rst();
+      /* Persist to localStorage so data survives page refresh */
+      try{
+        localStorage.setItem('skyatc_data', JSON.stringify(records));
+        localStorage.setItem('skyatc_ts', displayDate);
+        localStorage.setItem('skyatc_count', String(records.length));
+      }catch(e){console.warn('localStorage full');}
       el.textContent='\u2713 '+records.length+' records loaded'; el.className='umsg uok';
     }catch(err){el.textContent='\u2717 '+err.message;el.className='umsg uerr';}
   };
@@ -779,20 +995,42 @@ function splitLine(line){
 
 function convPcd(v){
   if(!v||v.toUpperCase()==='TBD')return'TBD';
+  var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  /* Excel serial date */
   var n=parseFloat(v);
   if(!isNaN(n)&&v.match(/^\d+(\.\d+)?$/)){
     var d=new Date((n-25569)*86400000);
-    return(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+    return String(d.getDate()).padStart(2,'0')+'-'+MONTHS[d.getMonth()]+'-'+String(d.getFullYear()).slice(-2);
   }
+  /* JIRA format: "03/Jun/26 12:00 AM" or any parseable date */
   var d=new Date(v);
-  if(!isNaN(d.getTime()))return(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+  if(!isNaN(d.getTime())){
+    return String(d.getDate()).padStart(2,'0')+'-'+MONTHS[d.getMonth()]+'-'+String(d.getFullYear()).slice(-2);
+  }
+  /* Try dd/Mon/yy pattern */
+  var m=v.match(/(\d{1,2})\/([A-Za-z]{3})\/(\d{2,4})/);
+  if(m){
+    var yr=parseInt(m[3]); yr=yr<100?yr+2000:yr;
+    var mo=MONTHS.indexOf(m[2].charAt(0).toUpperCase()+m[2].slice(1).toLowerCase());
+    if(mo>=0) return String(parseInt(m[1])).padStart(2,'0')+'-'+MONTHS[mo]+'-'+String(yr).slice(-2);
+  }
   return v.trim();
 }
 
 function fmtDate(v){
   if(!v)return'';
+  var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  /* JIRA format: "30/May/26 3:50 PM" */
+  var m=v.match(/(\d{1,2})\/([A-Za-z]{3})\/(\d{2,4})/);
+  if(m){
+    var yr=parseInt(m[3]); yr=yr<100?yr+2000:yr;
+    var mo=MONTHS.indexOf(m[2].charAt(0).toUpperCase()+m[2].slice(1).toLowerCase());
+    if(mo>=0) return String(parseInt(m[1])).padStart(2,'0')+'-'+MONTHS[mo]+'-'+String(yr).slice(-2);
+  }
   var d=new Date(v);
-  if(!isNaN(d.getTime()))return(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+  if(!isNaN(d.getTime())){
+    return String(d.getDate()).padStart(2,'0')+'-'+MONTHS[d.getMonth()]+'-'+String(d.getFullYear()).slice(-2);
+  }
   return v.split(' ')[0];
 }
 
@@ -806,7 +1044,16 @@ function buildReport(){
 
   function pvtHtml(sub,title){
     var sm={};sub.forEach(function(d){if(!sm[d.status])sm[d.status]={};sm[d.status][d.pcd]=(sm[d.status][d.pcd]||0)+1;});
-    var sts=Object.keys(sm).sort(),cols=PC.filter(function(c){return sts.some(function(s){return sm[s][c]>0;});});
+    var sts=Object.keys(sm).sort();
+    var allPcds2=new Set();sts.forEach(function(s){Object.keys(sm[s]).forEach(function(c){allPcds2.add(c);});});
+    var dateCols2=[...allPcds2].filter(function(c){return c!=='TBD';}).sort(function(a,b){
+      var pa=a.split('-'),pb=b.split('-');
+      var MO={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+      var da=new Date(2000+parseInt(pa[2]),MO[pa[1]]-1,parseInt(pa[0]));
+      var db=new Date(2000+parseInt(pb[2]),MO[pb[1]]-1,parseInt(pb[0]));
+      return da-db;
+    });
+    var cols=allPcds2.has('TBD')?['TBD'].concat(dateCols2):dateCols2;
     var h='<h3 style="font-size:13px;font-weight:600;margin:14px 0 6px;color:#1a1a2e;">'+title+'</h3>'+
       '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;"><thead><tr>'+
       '<th style="background:#BFE4F0;color:#0B4A5A;padding:5px 8px;border:1px solid #93cfe0;text-align:left;">Status</th>'+
@@ -872,7 +1119,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.14:50.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -911,7 +1158,15 @@ function buildEmailBody(){
       sm[d.status][d.pcd]=(sm[d.status][d.pcd]||0)+1;
     });
     var sts  = Object.keys(sm).sort();
-    var cols = PC.filter(function(c){return sts.some(function(s){return sm[s][c]>0;});});
+    var allPcds2=new Set();sts.forEach(function(s){Object.keys(sm[s]).forEach(function(c){allPcds2.add(c);});});
+    var dateCols2=[...allPcds2].filter(function(c){return c!=='TBD';}).sort(function(a,b){
+      var pa=a.split('-'),pb=b.split('-');
+      var MO={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+      var da=new Date(2000+parseInt(pa[2]),MO[pa[1]]-1,parseInt(pa[0]));
+      var db=new Date(2000+parseInt(pb[2]),MO[pb[1]]-1,parseInt(pb[0]));
+      return da-db;
+    });
+    var cols=allPcds2.has('TBD')?['TBD'].concat(dateCols2):dateCols2;
     var h = '<h3 style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;font-weight:600;'+
             'margin:18px 0 6px;color:#1a1a2e;border-bottom:2px solid #BFE4F0;padding-bottom:4px;">'+title+'</h3>'+
             '<table width="100%" cellpadding="0" cellspacing="0" border="0" '+
@@ -977,8 +1232,8 @@ function buildEmailBody(){
       '<td style="padding:4px 7px;border:0.5px solid #e2e8f0;font-size:11px;">'+d.release+'</td></tr>';
   }).join('');
 
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"/></head>'+
-    '<body style="margin:0;padding:0;background:#ffffff;font-family:Segoe UI,Arial,sans-serif;">'+
+  return '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#1a1a2e;margin:0;padding:0;">'+
+
 
     /* Header banner */
     '<table width="100%" cellpadding="0" cellspacing="0" border="0">'+
@@ -1056,51 +1311,358 @@ function buildEmailBody(){
     }).join('')+
     '</tr></thead><tbody>'+detailRows+'</tbody></table>'+
 
-    '</div></body></html>';
+    '</div>';
 }
 
 /* ── Copy full report HTML to clipboard (user pastes into Outlook body) ── */
-function copyToClipboard(){
-  var html = buildEmailBody();
-  var er   = document.getElementById('eres');
-
-  /* Modern clipboard API — writes HTML so pasting into Outlook preserves formatting */
-  if(navigator.clipboard && window.ClipboardItem){
-    var blob = new Blob([html],{type:'text/html'});
-    navigator.clipboard.write([new ClipboardItem({'text/html':blob})]).then(function(){
-      er.style.background='#d1fae5';er.style.color='#065f46';er.style.display='block';
-      er.innerHTML='<b>&#10003; Copied!</b> Open a new Outlook email, click in the body, and press <b>Ctrl+V</b> (Windows) or <b>Cmd+V</b> (Mac) to paste the full styled report.';
-    }).catch(function(){fallbackCopy(html,er);});
-  } else {
-    fallbackCopy(html,er);
-  }
+function copyAsImage(){
+  var er=document.getElementById('eres');
+  er.style.background='#eff6ff';er.style.color='#1e40af';er.style.display='block';
+  er.innerHTML='Capturing dashboard… please wait.';
+  /* Close modal briefly so it doesn't appear in screenshot */
+  var modal=document.getElementById('modal'); modal.style.display='none';
+  /* Capture the pane-dashboard div */
+  var target=document.getElementById('pane-dashboard');
+  html2canvas(target,{
+    scale:1.5,
+    useCORS:true,
+    backgroundColor:'#f8fafc',
+    logging:false,
+    windowWidth:target.scrollWidth,
+    windowHeight:target.scrollHeight
+  }).then(function(canvas){
+    modal.style.display='flex';
+    canvas.toBlob(function(blob){
+      if(navigator.clipboard&&window.ClipboardItem){
+        navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
+          er.style.background='#d1fae5';er.style.color='#065f46';
+          er.innerHTML='<b>&#10003; Image copied!</b> Open Outlook, click in the email body and press <b>Ctrl+V</b> to paste the dashboard screenshot.';
+        }).catch(function(e){
+          /* Fallback: open image in new tab for manual copy */
+          var url=URL.createObjectURL(blob);
+          window.open(url,'_blank');
+          er.style.background='#fef3c7';er.style.color='#92400e';
+          er.innerHTML='Image opened in new tab. Right-click → Copy Image, then paste into Outlook.';
+        });
+      } else {
+        /* Fallback for browsers without clipboard image API */
+        var url=URL.createObjectURL(blob);
+        var a=document.createElement('a');
+        a.href=url; a.download='SKY_ATC_Dashboard.png'; a.click();
+        er.style.background='#fef3c7';er.style.color='#92400e';
+        er.innerHTML='Image downloaded. Insert it into your email as an image attachment.';
+      }
+    },'image/png');
+  }).catch(function(e){
+    modal.style.display='flex';
+    er.style.background='#fee2e2';er.style.color='#991b1b';
+    er.innerHTML='Could not capture image: '+e.message+'. Try Download HTML instead.';
+  });
 }
 
-function fallbackCopy(html,er){
-  /* Fallback: create a hidden contenteditable div, select its content, copy */
+function copyToClipboard(){
+  var er = document.getElementById('eres');
+  er.style.background='#eff6ff';er.style.color='#1e40af';er.style.display='block';
+  er.innerHTML='Building report…';
+
+  /* Build a self-contained HTML document with ALL styles inline.
+     Outlook strips <style> blocks — every element must carry its own style attribute. */
+  var html = buildOutlookHtml();
+
+  /* Use execCommand on a hidden contenteditable div — most Outlook-compatible method */
   var div = document.createElement('div');
   div.contentEditable = 'true';
-  div.style.cssText   = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  div.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;';
   div.innerHTML = html;
   document.body.appendChild(div);
-  var range = document.createRange();
-  range.selectNodeContents(div);
-  var sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
+
+  var ok = false;
   try {
-    document.execCommand('copy');
-    er.style.background='#d1fae5';er.style.color='#065f46';er.style.display='block';
-    er.innerHTML='<b>&#10003; Copied!</b> Open a new Outlook email, click in the body, and press <b>Ctrl+V</b> (Windows) or <b>Cmd+V</b> (Mac) to paste the full styled report.';
-  } catch(e){
-    er.style.background='#fee2e2';er.style.color='#991b1b';er.style.display='block';
-    er.innerHTML='Could not copy automatically. Please use <b>Download HTML</b> and attach the file instead.';
-  }
-  sel.removeAllRanges();
+    div.focus();
+    var range = document.createRange();
+    range.selectNodeContents(div);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    ok = document.execCommand('copy');
+    sel.removeAllRanges();
+  } catch(e){ ok = false; }
   document.body.removeChild(div);
+
+  if(ok){
+    er.style.background='#d1fae5';er.style.color='#065f46';
+    er.innerHTML='<b>&#10003; Copied!</b> Open a new Outlook email → click in body → Ctrl+V (Windows) or Cmd+V (Mac).';
+  } else if(navigator.clipboard && window.ClipboardItem){
+    /* Modern API fallback */
+    var blob = new Blob([html],{type:'text/html'});
+    navigator.clipboard.write([new ClipboardItem({'text/html':blob})]).then(function(){
+      er.style.background='#d1fae5';er.style.color='#065f46';
+      er.innerHTML='<b>&#10003; Copied!</b> Open a new Outlook email → click in body → Ctrl+V (Windows) or Cmd+V (Mac).';
+    }).catch(function(){
+      er.style.background='#fee2e2';er.style.color='#991b1b';
+      er.innerHTML='Could not copy. Please use <b>Download HTML</b> and attach instead.';
+    });
+  } else {
+    er.style.background='#fee2e2';er.style.color='#991b1b';
+    er.innerHTML='Copy not supported in this browser. Please use <b>Download HTML</b>.';
+  }
 }
 
-/* ── Open Outlook desktop (tries Outlook-specific URI schemes) ── */
+/* Build a fully inline-styled HTML fragment for Outlook paste.
+   Rules: no <style> blocks, no CSS classes, every style is inline,
+   tables instead of flex/grid, explicit font-family on every cell. */
+function fmtDMY(val){
+  if(!val||val==='TBD') return val||'TBD';
+  var d=new Date(val);
+  if(isNaN(d.getTime())){
+    /* try M/d/yyyy parse */
+    var p=val.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(p) d=new Date(+p[3],+p[1]-1,+p[2]);
+  }
+  if(isNaN(d.getTime())) return val;
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dd=String(d.getDate()).padStart(2,'0');
+  var mmm=months[d.getMonth()];
+  var yy=String(d.getFullYear()).slice(-2);
+  return dd+'-'+mmm+'-'+yy;
+}
+function buildOutlookHtml(){
+  var F='font-family:Calibri,Arial,sans-serif;';
+  var ts=document.getElementById('tsLbl').textContent;
+  var msg=(document.getElementById('mBd').value||
+    'Hi team,\n\nPlease find the latest SKY ATC defect status report below.\n\nRegards')
+    .split('\n').map(function(l){
+      return l?'<p style="margin:3px 0;'+F+'font-size:13px;color:#1a1a2e;">'+
+        l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</p>':
+        '<p style="margin:3px 0;">&nbsp;</p>';
+    }).join('');
+
+  var a=fd(false),all=fd(true);
+  var D_total=all.length,
+      D_closed=all.filter(function(d){return EX.indexOf(d.status)>=0;}).length,
+      D_active=a.length,
+      withPcd=all.filter(function(d){return d.hasPcd;}).length,
+      tbd=all.filter(function(d){return !d.hasPcd;}).length,
+      fx=a.filter(function(d){return GR.indexOf(d.status)>=0;}).length,
+      reop=all.filter(function(d){return RE.indexOf(d.status)>=0;}).length;
+  var s1=a.filter(function(d){return d.severity==='Sev 1 - Blocker';}),
+      s2=a.filter(function(d){return d.severity==='Sev 2 - Critical';}),
+      s3=a.filter(function(d){return d.severity==='Sev 3 - Major';});
+  function subStr(arr){
+    var m={};arr.forEach(function(d){m[d.status]=(m[d.status]||0)+1;});
+    return Object.keys(m).sort().map(function(k){return '<b>'+m[k]+'</b> '+k;}).join(' &nbsp;·&nbsp; ')||'&mdash;';
+  }
+
+  /* ── styles ── */
+  var TD  =F+'font-size:11px;padding:5px 8px;border:1px solid #e2e8f0;color:#1a1a2e;vertical-align:top;';
+  var TDG =F+'font-size:11px;padding:5px 8px;border:1px solid #e2e8f0;color:#0F6E56;font-weight:700;vertical-align:top;';
+  var TDR =F+'font-size:11px;padding:5px 8px;border:1px solid #e2e8f0;color:#A32D2D;font-weight:700;vertical-align:top;';
+  var TH  =F+'font-size:11px;font-weight:700;padding:6px 8px;border:1px solid #93cfe0;background:#BFE4F0;color:#0B4A5A;text-align:left;white-space:nowrap;';
+  var THN =F+'font-size:11px;font-weight:700;padding:6px 8px;border:1px solid #93cfe0;background:#BFE4F0;color:#0B4A5A;text-align:center;white-space:nowrap;';
+  var TGR =F+'font-size:11px;font-weight:700;padding:5px 8px;border:1px solid #e2e8f0;background:#D6EEF7;color:#0B4A5A;text-align:center;';
+  var TGRL=F+'font-size:11px;font-weight:700;padding:5px 8px;border:1px solid #e2e8f0;background:#D6EEF7;color:#0B4A5A;text-align:left;';
+  var TDH =F+'font-size:11px;font-weight:700;padding:6px 8px;border:1px solid #3b0764;background:#4c1d95;color:#ffffff;text-align:left;white-space:nowrap;';
+
+  /* ── section heading ── */
+  function secHead(txt,borderColor){
+    return '<p style="margin:18px 0 6px;'+F+'font-size:13px;font-weight:700;color:#1a1a2e;'+
+      'border-bottom:2px solid '+(borderColor||'#BFE4F0')+';padding-bottom:3px;">'+txt+'</p>';
+  }
+
+  /* ── table-based horizontal bar (Outlook-safe) ── */
+  function barChart(title,items,maxVal,barColor){
+    /* items = [{label, value, color}] */
+    var rows=items.map(function(it){
+      var pct=maxVal>0?Math.round(it.value/maxVal*100):0;
+      var barW=Math.max(1,Math.round(pct*2)); /* 200px max */
+      return '<tr>'+
+        '<td style="'+F+'font-size:10px;color:#374151;padding:3px 8px 3px 0;white-space:nowrap;width:160px;vertical-align:middle;">'+it.label+'</td>'+
+        '<td style="padding:3px 4px;vertical-align:middle;">'+
+          '<table cellpadding="0" cellspacing="0" border="0"><tr>'+
+          '<td style="background:'+(it.color||barColor||'#5b21b6')+';height:14px;width:'+barW+'px;font-size:1px;">&nbsp;</td>'+
+          '<td style="background:#f1f5f9;height:14px;width:'+(200-barW)+'px;font-size:1px;">&nbsp;</td>'+
+          '</tr></table>'+
+        '</td>'+
+        '<td style="'+F+'font-size:11px;font-weight:700;color:#1a1a2e;padding:3px 0 3px 6px;white-space:nowrap;vertical-align:middle;">'+it.value+'</td>'+
+      '</tr>';
+    }).join('');
+    return '<table cellpadding="0" cellspacing="0" border="0" width="100%">'+rows+'</table>';
+  }
+
+  /* ── build status chart data ── */
+  var stMap={};a.forEach(function(d){stMap[d.status]=(stMap[d.status]||0)+1;});
+  var stItems=Object.keys(stMap).sort(function(a,b){return stMap[b]-stMap[a];}).map(function(s){
+    var col='#888780';
+    if(GR.indexOf(s)>=0) col='#059669';
+    else if(RE.indexOf(s)>=0) col='#dc2626';
+    else if(s==='Dev In Progress') col='#d97706';
+    else if(s==='Impact Assessment') col='#378ADD';
+    else if(s==='New') col='#888780';
+    return {label:s,value:stMap[s],color:col};
+  });
+  var stMax=stItems.length?stItems[0].value:1;
+
+  /* ── pivot ── */
+  function pvt(rows,title){
+    var sm={};
+    rows.forEach(function(d){if(!sm[d.status])sm[d.status]={};sm[d.status][d.pcd]=(sm[d.status][d.pcd]||0)+1;});
+    var sts=Object.keys(sm).sort();
+    var allPcds2=new Set();sts.forEach(function(s){Object.keys(sm[s]).forEach(function(c){allPcds2.add(c);});});
+    var dateCols2=[...allPcds2].filter(function(c){return c!=='TBD';}).sort(function(a,b){
+      var pa=a.split('-'),pb=b.split('-');
+      var MO={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+      var da=new Date(2000+parseInt(pa[2]),MO[pa[1]]-1,parseInt(pa[0]));
+      var db=new Date(2000+parseInt(pb[2]),MO[pb[1]]-1,parseInt(pb[0]));
+      return da-db;
+    });
+    var cols=allPcds2.has('TBD')?['TBD'].concat(dateCols2):dateCols2;
+    if(!sts.length) return '';
+    var tots={};
+    var bodyRows=sts.map(function(st){
+      var g=GR.indexOf(st)>=0,r=RE.indexOf(st)>=0;
+      var sc=g?'#0F6E56':r?'#A32D2D':'#1a1a2e'; var fw=g||r?'700':'400'; var tot=0;
+      var cells=cols.map(function(c){
+        var v=sm[st][c]||0; tot+=v;
+        if(!tots[c])tots[c]=0; tots[c]+=v;
+        var sty=F+'font-size:11px;padding:5px 8px;border:1px solid #e2e8f0;text-align:center;color:'+(v?sc:'#CBD5E1')+';font-weight:'+(v?fw:'400')+';';
+        return '<td style="'+sty+'">'+(v||'–')+'</td>';
+      }).join('');
+      return '<tr style="background:#ffffff;">'+
+        '<td style="'+F+'font-size:11px;padding:5px 8px;border:1px solid #e2e8f0;color:'+sc+';font-weight:'+fw+';">'+st+'</td>'+
+        cells+
+        '<td style="'+F+'font-size:11px;padding:5px 8px;border:1px solid #e2e8f0;text-align:center;color:'+sc+';font-weight:700;">'+tot+'</td></tr>';
+    }).join('');
+    var grand=Object.values(tots).reduce(function(a,b){return a+b;},0);
+    var grandRow='<tr><td style="'+TGRL+'">Grand total</td>'+
+      cols.map(function(c){return '<td style="'+TGR+'">'+(tots[c]||0)+'</td>';}).join('')+
+      '<td style="'+TGR+'">'+grand+'</td></tr>';
+    return secHead(title)+
+      '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-bottom:4px;">'+
+      '<thead><tr><th style="'+TH+'">Status</th>'+
+      cols.map(function(c){return '<th style="'+THN+'">'+c+'</th>';}).join('')+
+      '<th style="'+THN+'">Total</th></tr></thead>'+
+      '<tbody>'+bodyRows+grandRow+'</tbody></table>';
+  }
+
+  /* ── detail rows ── */
+  var allActive=D.filter(function(d){return EX.indexOf(d.status)<0;});
+  var detRows=all.map(function(d){
+    var g=GR.indexOf(d.status)>=0,r=RE.indexOf(d.status)>=0;
+    var sc=g?'#0F6E56':r?'#A32D2D':'#1a1a2e'; var fw=g||r?'700':'400';
+    var bg2=d.severity==='Sev 1 - Blocker'?'#FCEBEB':d.severity==='Sev 2 - Critical'?'#FAEEDA':'#E6F1FB';
+    var tc2=d.severity==='Sev 1 - Blocker'?'#791F1F':d.severity==='Sev 2 - Critical'?'#633806':'#0C447C';
+    return '<tr style="background:#ffffff;">'+
+      '<td style="'+TD+'white-space:nowrap;">'+d.key+'</td>'+
+      '<td style="'+F+'font-size:11px;padding:5px 8px;border:1px solid #e2e8f0;color:'+sc+';font-weight:'+fw+';">'+d.status+'</td>'+
+      '<td style="'+TD+'white-space:nowrap;">'+fmtDMY(d.created)+'</td>'+
+      '<td style="'+TD+'white-space:nowrap;">'+fmtDMY(d.pcd)+'</td>'+
+      '<td style="'+TD+'"><span style="background:'+bg2+';color:'+tc2+';padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;white-space:nowrap;">'+d.severity+'</span></td>'+
+      '<td style="'+TD+'">'+d.team+'</td>'+
+      '<td style="'+TD+'">'+d.chunk+'</td>'+
+      '<td style="'+TD+'text-align:center;">'+d.knownClient+'</td>'+
+      '<td style="'+TD+'">'+d.release+'</td></tr>';
+  }).join('');
+
+  return (
+    /* ── HEADER ── */
+    '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#2d1b69;margin-bottom:14px;">'+
+    '<tr><td style="padding:14px 20px;">'+
+      '<span style="'+F+'font-size:17px;font-weight:700;color:#ffffff;">SKY ATC &ndash; Defect Status Report</span>'+
+      '&nbsp;&nbsp;<span style="'+F+'font-size:11px;color:#c4b5fd;">'+ts+'</span>'+
+    '</td></tr></table>'+
+
+    /* ── MESSAGE ── */
+    '<div style="margin-bottom:16px;">'+msg+'</div>'+
+
+    /* ── SUMMARY TILES ── */
+    secHead('Summary','#5b21b6')+
+    '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;background:#F5F3FF;border:1px solid #DDD6FE;margin-bottom:16px;">'+
+    '<tr>'+
+    '<td style="'+F+'font-size:11px;padding:12px 10px;text-align:center;border:1px solid #DDD6FE;width:20%;">'+
+      '<div style="'+F+'font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#5b21b6;margin-bottom:5px;">Total defects</div>'+
+      '<div style="'+F+'font-size:28px;font-weight:700;color:#1e3a5f;line-height:1;">'+D_total+'</div>'+
+      '<div style="'+F+'font-size:10px;color:#374151;margin-top:4px;">Active: <b style="color:#6d28d9;">'+D_active+'</b></div>'+
+    '</td>'+
+    '<td style="'+F+'font-size:11px;padding:12px 10px;text-align:center;border:1px solid #DDD6FE;width:20%;">'+
+      '<div style="'+F+'font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#92400e;margin-bottom:5px;">Planned dates</div>'+
+      '<div style="'+F+'font-size:28px;font-weight:700;color:#065f46;line-height:1;">'+withPcd+'</div>'+
+      '<div style="'+F+'font-size:10px;color:#374151;margin-top:4px;"><b style="color:#b45309;">'+tbd+'</b> Without Planned dates</div>'+
+    '</td>'+
+    '<td style="'+F+'font-size:11px;padding:12px 10px;text-align:center;border:1px solid #DDD6FE;width:20%;">'+
+      '<div style="'+F+'font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#065f46;margin-bottom:5px;">Fixed / In review</div>'+
+      '<div style="'+F+'font-size:28px;font-weight:700;color:#065f46;line-height:1;">'+fx+'</div>'+
+      '<div style="'+F+'font-size:10px;color:#374151;margin-top:4px;">Resolved &amp; reviewed</div>'+
+    '</td>'+
+    '<td style="'+F+'font-size:11px;padding:12px 10px;text-align:center;border:1px solid #DDD6FE;width:20%;">'+
+      '<div style="'+F+'font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#92400e;margin-bottom:5px;">Reopened</div>'+
+      '<div style="'+F+'font-size:28px;font-weight:700;color:#b45309;line-height:1;">'+reop+'</div>'+
+      '<div style="'+F+'font-size:10px;color:#374151;margin-top:4px;">Reopened &amp; Blocked</div>'+
+    '</td>'+
+    '<td style="'+F+'font-size:11px;padding:12px 10px;text-align:center;border:2px solid #FCA5A5;width:20%;">'+
+      '<div style="'+F+'font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#991b1b;margin-bottom:5px;">Closed / Rejected</div>'+
+      '<div style="'+F+'font-size:28px;font-weight:700;color:#dc2626;line-height:1;">'+D_closed+'</div>'+
+      '<div style="'+F+'font-size:10px;color:#374151;margin-top:4px;"><b style="color:#991b1b;">'+cn(all,'status','Closed')+'</b> Closed &middot; <b style="color:#991b1b;">'+cn(all,'status','Rejected')+'</b> Rejected</div>'+
+    '</td>'+
+    '</tr></table>'+
+
+    /* ── SEVERITY TILES ── */
+    secHead('Severity breakdown','#e2e8f0')+
+    '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-bottom:16px;">'+
+    '<tr>'+
+    '<td style="background:#FCEBEB;border:1px solid #F09595;padding:12px 14px;width:33%;vertical-align:top;">'+
+      '<div style="'+F+'font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#791F1F;margin-bottom:6px;">Sev 1 &ndash; Blocker</div>'+
+      '<div style="'+F+'font-size:28px;font-weight:700;color:#791F1F;line-height:1;margin-bottom:8px;">'+s1.length+'</div>'+
+      '<div style="'+F+'font-size:10px;color:#791F1F;line-height:1.8;">'+subStr(s1)+'</div>'+
+    '</td>'+
+    '<td style="width:6px;"></td>'+
+    '<td style="background:#FAEEDA;border:1px solid #EF9F27;padding:12px 14px;width:33%;vertical-align:top;">'+
+      '<div style="'+F+'font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#633806;margin-bottom:6px;">Sev 2 &ndash; Critical</div>'+
+      '<div style="'+F+'font-size:28px;font-weight:700;color:#633806;line-height:1;margin-bottom:8px;">'+s2.length+'</div>'+
+      '<div style="'+F+'font-size:10px;color:#633806;line-height:1.8;">'+subStr(s2)+'</div>'+
+    '</td>'+
+    '<td style="width:6px;"></td>'+
+    '<td style="background:#E6F1FB;border:1px solid #85B7EB;padding:12px 14px;width:33%;vertical-align:top;">'+
+      '<div style="'+F+'font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#0C447C;margin-bottom:6px;">Sev 3 &ndash; Major</div>'+
+      '<div style="'+F+'font-size:28px;font-weight:700;color:#0C447C;line-height:1;margin-bottom:8px;">'+s3.length+'</div>'+
+      '<div style="'+F+'font-size:10px;color:#0C447C;line-height:1.8;">'+subStr(s3)+'</div>'+
+    '</td>'+
+    '</tr></table>'+
+
+    /* ── BAR CHARTS ── */
+    secHead('Defects by status','#e2e8f0')+
+    '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:16px;"><tr>'+
+    '<td style="vertical-align:top;padding-right:20px;width:50%;">'+barChart('',stItems.slice(0,Math.ceil(stItems.length/2)),stMax)+'</td>'+
+    '<td style="vertical-align:top;width:50%;">'+barChart('',stItems.slice(Math.ceil(stItems.length/2)),stMax)+'</td>'+
+    '</tr></table>'+
+
+    secHead('Defects by severity','#e2e8f0')+
+    '<table cellpadding="0" cellspacing="0" border="0" width="60%" style="margin-bottom:16px;">'+
+    barChart('',
+      [{label:'Sev 1 – Blocker',value:s1.length,color:'#dc2626'},
+       {label:'Sev 2 – Critical',value:s2.length,color:'#d97706'},
+       {label:'Sev 3 – Major',value:s3.length,color:'#378ADD'}],
+      Math.max(s1.length,s2.length,s3.length))+
+    '</table>'+
+
+    /* ── PIVOT TABLES ── */
+    pvt(allActive,'Overall defect summary')+
+    pvt(allActive.filter(function(d){return d.release==='R1.2';}),'Release R1.2')+
+    pvt(allActive.filter(function(d){return d.release==='R1.3';}),'Release R1.3')+
+    pvt(allActive.filter(function(d){return d.release==='R1.4';}),'Release R1.4')+
+
+    /* ── DETAIL TABLE ── */
+    secHead('Defect detail','#4c1d95')+
+    '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-bottom:12px;">'+
+    '<thead><tr>'+
+    ['Issue key','Status','Created','Planned Dev Completion','Severity','Team','Chunk','Known to client','Release']
+      .map(function(h){return '<th style="'+TDH+'">'+h+'</th>';}).join('')+
+    '</tr></thead><tbody>'+detRows+'</tbody></table>'
+  );
+}
+
+
+
+
 function openInOutlook(){
   var to   = document.getElementById('mTo').value.trim();
   var subj = document.getElementById('mSj').value||'SKY ATC \u2013 Defect Status Report';
@@ -1191,13 +1753,404 @@ function closeModal(){document.getElementById('modal').classList.remove('open');
 /* ═══════════════════════════════════════
    CONFIG — STATUS MAPPINGS
    ═══════════════════════════════════════ */
-/* ── Tab switching ── */
+/* ── Status label mapping ── */
+var LABEL_MAP_DEFAULTS={"New": "New", "Impact Assessment": "In Progress", "Pending Clarification – Functional": "Pending Clarification", "Review Complete": "Fixed", "Dev In Progress": "In Progress", "Pending Clarification - QA": "Pending Clarification", "Blocked": "Blocked", "Sanity Checked": "Fixed", "In Review": "Fixed", "VALIDATED BY QA TEAM": "Fixed", "Closed": "Closed", "Reopened (migrated)": "Reopened", "Resolved (migrated)": "Fixed", "Pending Clarification – Client": "Pending Clarification", "Fixed": "Fixed"};
+var LABEL_MAP=Object.assign({},LABEL_MAP_DEFAULTS);
+
+function loadLabelMap(){
+  try{
+    var s=localStorage.getItem('skyatc_lmap');
+    if(s) LABEL_MAP=JSON.parse(s);
+  }catch(e){}
+  buildArrays();
+}
+
+function saveLabelMap(){
+  try{localStorage.setItem('skyatc_lmap',JSON.stringify(LABEL_MAP));}catch(e){}
+}
+
+function getLabel(status){
+  return LABEL_MAP[status]||status;
+}
+
+function getLabelColor(lbl){
+  if(lbl==='Fixed')    return '#d1fae5';
+  if(lbl==='Closed'||lbl==='Rejected') return '#fee2e2';
+  if(lbl==='Reopened') return '#fef3c7';
+  return '#f8fafc';
+}
+
+function renderLabelMap(){
+  var container=document.getElementById('lmapGrouped');
+  if(!container) return;
+
+  /* Build reverse map: label → [statuses] */
+  var allSts=[...new Set([...Object.keys(LABEL_MAP),...D.map(function(d){return d.status;})])].sort();
+  var byLabel={};
+  allSts.forEach(function(s){
+    var lbl=LABEL_MAP[s]||s;
+    if(!byLabel[lbl]) byLabel[lbl]=[];
+    byLabel[lbl].push(s);
+  });
+
+  container.innerHTML=Object.keys(byLabel).sort().map(function(lbl){
+    var statuses=byLabel[lbl];
+    /* Colour based on what the label means */
+    var bg=lbl==='Fixed'?'#d1fae5':lbl==='Reopened'?'#fef3c7':
+           (lbl==='Closed'||lbl==='Rejected')?'#fee2e2':'#EDE9FE';
+    var col=lbl==='Fixed'?'#065f46':lbl==='Reopened'?'#92400e':
+            (lbl==='Closed'||lbl==='Rejected')?'#991b1b':'#4c1d95';
+    var safeLbl=lbl.replace(/&/g,'&amp;');
+    /* Tag pills for each status mapped to this label */
+    var pills=statuses.map(function(s){
+      var safeS=s.replace(/&/g,'&amp;');
+      return '<span class="cfg-tag" style="background:'+bg+';color:'+col+';font-size:11px;" '+
+             'data-label="'+safeLbl+'" data-status="'+safeS+'">'+safeS+
+             '<span class="rm" title="Remove">&#215;</span></span>';
+    }).join('');
+    return '<div style="padding:8px 10px;background:'+bg+';border:1px solid '+col+';'+
+           'border-radius:6px;opacity:.9;">'+
+           '<div style="font-size:11px;font-weight:600;color:'+col+';margin-bottom:6px;">'+safeLbl+'</div>'+
+           '<div class="cfg-tags" style="margin:0;">'+pills+'</div>'+
+           '</div>';
+  }).join('');
+
+  /* Wire remove buttons */
+  container.querySelectorAll('.rm').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var tag=btn.parentElement;
+      var s=tag.getAttribute('data-status');
+      delete LABEL_MAP[s];
+      renderLabelMap();
+    });
+  });
+}
+
+function addLmapRow(){
+  var lbl=document.getElementById('newLmapLabel').value.trim();
+  var s=document.getElementById('newLmapStatus').value.trim();
+  if(!lbl||!s) return;
+  LABEL_MAP[s]=lbl;
+  /* Auto-assign to group based on label */
+  if(lbl==='Fixed'&&GR.indexOf(s)<0){ GR.push(s); EX=EX.filter(function(x){return x!==s;}); RE=RE.filter(function(x){return x!==s;}); }
+  else if(lbl==='Reopened'&&RE.indexOf(s)<0){ RE.push(s); GR=GR.filter(function(x){return x!==s;}); EX=EX.filter(function(x){return x!==s;}); }
+  else if((lbl==='Closed'||lbl==='Rejected')&&EX.indexOf(s)<0){ EX.push(s); GR=GR.filter(function(x){return x!==s;}); RE=RE.filter(function(x){return x!==s;}); }
+  document.getElementById('newLmapStatus').value='';
+  var dd=document.getElementById('cfgDD-LMAP'); if(dd) dd.style.display='none';
+  renderLabelMap();
+  renderCfgMapping();
+  renderInventory();
+}
+
+function updateLmapRowColor(inp){
+  var lbl=inp.value.trim();
+  inp.closest('tr').style.background=getLabelColor(lbl);
+}
+
+function removeLmapRow(btn){
+  var tr=btn.closest('tr');
+  var s=tr.getAttribute('data-status');
+  delete LABEL_MAP[s];
+  tr.remove();
+}
+
+function addLmapRow(){
+  var sInp=document.getElementById('newLmapStatus');
+  var lInp=document.getElementById('newLmapLabel');
+  var s=sInp.value.trim(); var lbl=lInp.value.trim();
+  if(!s||!lbl) return;
+  LABEL_MAP[s]=lbl;
+  var tbody=document.getElementById('lmapBody');
+  var bg=getLabelColor(lbl);
+  var safeS=s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  var safeLbl=lbl.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  var tr=document.createElement('tr');
+  tr.setAttribute('data-status',safeS);
+  tr.style.background=bg;
+  tr.innerHTML=
+    '<td style="font-size:12px;padding:6px 10px;border:0.5px solid #e2e8f0;color:#374151;">'+s+'</td>'+
+    '<td style="padding:4px 8px;border:0.5px solid #e2e8f0;">'+
+      '<input class="lmap-input" data-status="'+safeS+'" value="'+safeLbl+'" '+
+      'placeholder="'+safeS+'" oninput="updateLmapRowColor(this)"/>'+
+    '</td>'+
+    '<td style="text-align:center;padding:4px 8px;border:0.5px solid #e2e8f0;">'+
+      '<span style="cursor:pointer;color:#dc2626;font-size:14px;font-weight:700;" '+
+      'onclick="removeLmapRow(this)">&#215;</span>'+
+    '</td>';
+  tbody.appendChild(tr);
+  sInp.value=''; lInp.value='';
+}
+
+function applyLabelMap(){
+  /* Read all rows — build fresh LABEL_MAP from current inputs */
+  var inputs=document.querySelectorAll('#lmapBody .lmap-input');
+  var newMap={};
+  inputs.forEach(function(inp){
+    var s=inp.getAttribute('data-status');
+    var v=inp.value.trim();
+    if(s&&v) newMap[s]=v;
+  });
+  LABEL_MAP=newMap;
+  saveLabelMap();
+  buildArrays();
+  go();
+  var msg=document.getElementById('lmapMsg');
+  if(msg){msg.style.display='inline';setTimeout(function(){msg.style.display='none';},2000);}
+}
+
+function resetLabelMap(){
+  LABEL_MAP=Object.assign({},LABEL_MAP_DEFAULTS);
+  try{localStorage.removeItem('skyatc_lmap');}catch(e){}
+  buildArrays();
+  renderLabelMap();
+  go();
+}
+
+/* ── Config tab ── */
+
+function grpBg(grp){
+  return grp==='GR'?'#f0fdf4':grp==='EX'?'#fff5f5':grp==='RE'?'#fffbeb':'#ffffff';
+}
+function grpCol(grp){
+  return grp==='GR'?'#065f46':grp==='EX'?'#991b1b':grp==='RE'?'#92400e':'#374151';
+}
+function grpName(grp){
+  return grp==='GR'?'Fixed / In review':grp==='EX'?'Closed / Rejected':grp==='RE'?'Reopened':'Active';
+}
+
+/* Render table: one row per display label */
+function renderCfgMapping(){
+  var tbody=document.getElementById('cfgTableBody');
+  if(!tbody) return;
+
+  /* Build label → {grp, statuses[]} */
+  var allSts=[...new Set([...Object.keys(LABEL_MAP),...D.map(function(d){return d.status;})])].sort();
+  var byLabel={};
+  allSts.forEach(function(s){
+    var lbl=LABEL_MAP[s]||s;
+    var grp=EX.indexOf(s)>=0?'EX':GR.indexOf(s)>=0?'GR':RE.indexOf(s)>=0?'RE':'active';
+    if(!byLabel[lbl]) byLabel[lbl]={grp:grp,statuses:[]};
+    byLabel[lbl].statuses.push(s);
+  });
+
+  tbody.innerHTML=Object.keys(byLabel).sort().map(function(lbl){
+    var info=byLabel[lbl]; var grp=info.grp;
+    var bg=grpBg(grp); var col=grpCol(grp);
+    var safeLbl=lbl.replace(/&/g,'&amp;');
+    var pills=info.statuses.map(function(s){
+      var safeS=s.replace(/&/g,'&amp;');
+      return '<span class="cfg-tag" style="background:'+bg+';color:'+col+';font-size:11px;" '+
+             'data-lbl="'+safeLbl+'" data-st="'+safeS+'">'+safeS+
+             '<span class="rm" title="Remove this status">&#215;</span></span>';
+    }).join('');
+    return '<tr style="background:'+bg+';border-bottom:0.5px solid #e2e8f0;" data-lbl="'+safeLbl+'">'+
+      '<td style="padding:8px 12px;font-size:12px;font-weight:600;color:'+col+';vertical-align:middle;white-space:nowrap;">'+safeLbl+'</td>'+
+      '<td style="padding:8px 12px;vertical-align:middle;"><div class="cfg-tags" style="margin:0;">'+pills+'</div></td>'+
+      '<td style="padding:8px 10px;vertical-align:middle;">'+
+        '<select onchange="cfgGrpChange(this)" data-lbl="'+safeLbl+'"'+
+        ' style="font-size:11px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:5px;'+
+        'font-family:inherit;background:'+bg+';color:'+col+';width:100%;">'+
+        '<option value="active"'+(grp==='active'?' selected':'')+'>Active</option>'+
+        '<option value="GR"'+(grp==='GR'?' selected':'')+'>Fixed / In review</option>'+
+        '<option value="RE"'+(grp==='RE'?' selected':'')+'>Reopened</option>'+
+        '<option value="EX"'+(grp==='EX'?' selected':'')+'>Closed / Rejected</option>'+
+        '</select>'+
+      '</td>'+
+      '<td style="text-align:center;padding:8px;vertical-align:middle;">'+
+        '<span style="cursor:pointer;color:#dc2626;font-size:16px;font-weight:700;" '+
+        'onclick="cfgRemoveLabel(this)" title="Remove entire label and all its statuses">&#215;</span>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+
+  /* Wire pill ✕ remove buttons */
+  tbody.querySelectorAll('.rm').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var tag=btn.parentElement;
+      var s=tag.getAttribute('data-st');
+      delete LABEL_MAP[s];
+      EX=EX.filter(function(x){return x!==s;});
+      GR=GR.filter(function(x){return x!==s;});
+      RE=RE.filter(function(x){return x!==s;});
+      renderCfgMapping(); renderInventory();
+    });
+  });
+}
+
+/* Group dropdown changed on a row — update all statuses under that label */
+function cfgGrpChange(sel){
+  var lbl=sel.getAttribute('data-lbl'); var grp=sel.value;
+  Object.keys(LABEL_MAP).forEach(function(s){
+    if(LABEL_MAP[s]===lbl){
+      EX=EX.filter(function(x){return x!==s;});
+      GR=GR.filter(function(x){return x!==s;});
+      RE=RE.filter(function(x){return x!==s;});
+      if(grp==='GR')      GR.push(s);
+      else if(grp==='RE') RE.push(s);
+      else if(grp==='EX') EX.push(s);
+    }
+  });
+  renderCfgMapping(); renderInventory();
+}
+
+/* Remove entire label row and all its statuses */
+function cfgRemoveLabel(btn){
+  var row=btn.closest('tr'); var lbl=row.getAttribute('data-lbl');
+  Object.keys(LABEL_MAP).forEach(function(s){
+    if(LABEL_MAP[s]===lbl){
+      delete LABEL_MAP[s];
+      EX=EX.filter(function(x){return x!==s;});
+      GR=GR.filter(function(x){return x!==s;});
+      RE=RE.filter(function(x){return x!==s;});
+    }
+  });
+  row.remove(); renderInventory();
+}
+
+/* Display label dropdown — existing labels + hint for new */
+function cfgLabelDD(){
+  var inp=document.getElementById('cfgNewLabel');
+  var dd=document.getElementById('cfgDD-label');
+  if(!dd||!inp) return;
+  var q=inp.value.toLowerCase();
+  /* Get distinct labels from current LABEL_MAP */
+  var labels=[...new Set(Object.values(LABEL_MAP))].sort();
+  var filtered=q?labels.filter(function(l){return l.toLowerCase().includes(q);}):labels;
+  dd.innerHTML='';
+  /* Show 'Create new label' option if typed value is new */
+  var isNew=inp.value.trim()&&labels.indexOf(inp.value.trim())<0;
+  if(isNew){
+    var newEl=document.createElement('div');
+    newEl.className='cfg-srch-dd-item';
+    newEl.style.cssText='color:#4c1d95;font-weight:500;';
+    newEl.textContent='+ Create new label: "'+inp.value.trim()+'"';
+    newEl.addEventListener('mousedown',function(){dd.style.display='none';});
+    dd.appendChild(newEl);
+    if(filtered.length) dd.appendChild((function(){var d=document.createElement('div');d.style.cssText='height:1px;background:#e2e8f0;margin:4px 0;';return d;})());
+  }
+  filtered.forEach(function(l){
+    var el=document.createElement('div');
+    el.className='cfg-srch-dd-item';
+    el.textContent=l;
+    el.addEventListener('mousedown',function(){
+      inp.value=l;
+      /* Auto-set group based on what's already mapped to this label */
+      var sts=Object.keys(LABEL_MAP).filter(function(s){return LABEL_MAP[s]===l;});
+      if(sts.length){
+        var s0=sts[0];
+        var grp=EX.indexOf(s0)>=0?'EX':GR.indexOf(s0)>=0?'GR':RE.indexOf(s0)>=0?'RE':'active';
+        var gSel=document.getElementById('cfgNewGrp'); if(gSel) gSel.value=grp;
+      }
+      dd.style.display='none';
+    });
+    dd.appendChild(el);
+  });
+  dd.style.display=(filtered.length||isNew)?'block':'none';
+}
+
+/* JIRA status search dropdown */
+function cfgStatusDD(){
+  var inp=document.getElementById('cfgNewStatus');
+  var dd=document.getElementById('cfgDD-status');
+  if(!dd||!inp) return;
+  var q=inp.value.toLowerCase();
+  var allSts=[...new Set(D.map(function(d){return d.status;}))].sort();
+  var filtered=q?allSts.filter(function(s){return s.toLowerCase().includes(q);}):allSts;
+  dd.innerHTML='';
+  if(!filtered.length){
+    var em=document.createElement('div');
+    em.className='cfg-srch-dd-item'; em.style.color='#94a3b8';
+    em.textContent='No match — will be added as new status';
+    dd.appendChild(em);
+    dd.style.display='block'; return;
+  }
+  filtered.forEach(function(s){
+    var curLbl=LABEL_MAP[s];
+    var curGrp=EX.indexOf(s)>=0?'EX':GR.indexOf(s)>=0?'GR':RE.indexOf(s)>=0?'RE':'active';
+    var el=document.createElement('div');
+    el.className='cfg-srch-dd-item';
+    el.innerHTML='<b>'+s.replace(/&/g,'&amp;')+'</b>'+(curLbl&&curLbl!==s?
+      ' <span style="color:#94a3b8;font-size:10px;">→ '+curLbl+' ('+grpName(curGrp)+')</span>':'');
+    el.addEventListener('mousedown',function(){
+      inp.value=s;
+      /* Auto-fill label and group from existing mapping */
+      var lInp=document.getElementById('cfgNewLabel');
+      if(lInp&&!lInp.value&&curLbl) lInp.value=curLbl;
+      var gSel=document.getElementById('cfgNewGrp');
+      if(gSel) gSel.value=curGrp;
+      dd.style.display='none';
+    });
+    dd.appendChild(el);
+  });
+  dd.style.display='block';
+}
+
+/* Close dropdown on outside click */
+document.addEventListener('click',function(e){
+  ['cfgDD-status','cfgDD-label'].forEach(function(id){
+    var dd=document.getElementById(id);
+    var inpId=id==='cfgDD-status'?'cfgNewStatus':'cfgNewLabel';
+    if(dd&&e.target.id!==inpId&&!dd.contains(e.target))
+      dd.style.display='none';
+  });
+});
+
+/* Main add function */
+function cfgAddMapping(){
+  var lbl=(document.getElementById('cfgNewLabel')||{value:''}).value.trim();
+  var s=(document.getElementById('cfgNewStatus')||{value:''}).value.trim();
+  var grp=(document.getElementById('cfgNewGrp')||{value:'active'}).value;
+  if(!lbl){ document.getElementById('cfgNewLabel').focus(); return; }
+  if(!s){   document.getElementById('cfgNewStatus').focus(); return; }
+  /* Remove status from any previous mapping */
+  delete LABEL_MAP[s];
+  EX=EX.filter(function(x){return x!==s;});
+  GR=GR.filter(function(x){return x!==s;});
+  RE=RE.filter(function(x){return x!==s;});
+  /* Assign new mapping */
+  LABEL_MAP[s]=lbl;
+  if(grp==='GR')      GR.push(s);
+  else if(grp==='RE') RE.push(s);
+  else if(grp==='EX') EX.push(s);
+  /* Clear inputs for next entry */
+  document.getElementById('cfgNewStatus').value='';
+  document.getElementById('cfgDD-status').style.display='none';
+  renderCfgMapping(); renderInventory();
+}
+
+function cfgApply(){
+  saveLabelMap(); saveConfig(); buildArrays();
+  populateMsStatus(); go(); renderInventory();
+  var msg=document.getElementById('cfgAppliedMsg');
+  if(msg){msg.style.display='inline';setTimeout(function(){msg.style.display='none';},2000);}
+}
+
+function cfgReset(){
+  EX=CFG_DEFAULTS.EX.slice(); GR=CFG_DEFAULTS.GR.slice(); RE=CFG_DEFAULTS.RE.slice();
+  LABEL_MAP=Object.assign({},LABEL_MAP_DEFAULTS);
+  try{localStorage.removeItem('skyatc_cfg');localStorage.removeItem('skyatc_lmap');}catch(e){}
+  buildArrays(); renderCfgMapping(); renderInventory(); go();
+}
+
+function renderInventory(){
+  var inv=document.getElementById('statusInventory'); if(!inv) return;
+  var allSts=[...new Set(D.map(function(d){return d.status;}))].sort();
+  inv.innerHTML=allSts.map(function(s){
+    var grp=EX.indexOf(s)>=0?'EX':GR.indexOf(s)>=0?'GR':RE.indexOf(s)>=0?'RE':'active';
+    var bg=grpBg(grp); var col=grpCol(grp);
+    return '<span style="background:'+bg+';color:'+col+';padding:3px 10px;border-radius:12px;'+
+           'white-space:nowrap;font-size:11px;border:1px solid '+col+';opacity:.85;">'+
+           s.replace(/&/g,'&amp;')+' <b>('+grpName(grp)+')</b></span>';
+  }).join('');
+}
+
+/* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── */
 function switchTab(name){
   ['dashboard','config'].forEach(function(t){
     document.getElementById('pane-'+t).classList.toggle('active', t===name);
     document.getElementById('tab-'+t).classList.toggle('active', t===name);
   });
-  if(name==='config') renderAllTags();
+  if(name==='config'){renderCfgMapping();renderInventory();}
 }
 
 /* ── Config tab functions ── */
@@ -1252,20 +2205,38 @@ function addTag2(key){
   renderAllTags();
 }
 
-function applyConfig2(){
+function applyAllConfig(){
+  /* Read status mapping table and rebuild EX, GR, RE */
+  var rows=document.querySelectorAll('#statusMappingBody tr');
+  var newEX=[],newGR=[],newRE=[];
+  rows.forEach(function(row){
+    var s=row.getAttribute('data-status');
+    var grp=row.querySelector('select').value;
+    if(grp==='EX') newEX.push(s);
+    else if(grp==='GR') newGR.push(s);
+    else if(grp==='RE') newRE.push(s);
+  });
+  EX=newEX; GR=newGR; RE=newRE;
+  /* Apply label map */
+  applyLabelMap();
   saveConfig();
   populateMsRelease();
   populateMsStatus();
+  populateMsTeam();
+  populateMsSeverity();
+  populateMsKnown();
   go();
+  renderInventory();
   var msg=document.getElementById('cfgAppliedMsg');
   if(msg){msg.style.display='inline';setTimeout(function(){msg.style.display='none';},2000);}
-  renderAllTags();
 }
+
+function applyConfig2(){ applyAllConfig(); }
 
 var CFG_DEFAULTS = {
   EX: ['Closed','Rejected'],
   GR: ['Resolved (migrated)','Review Complete','In Review','VALIDATED BY QA TEAM','Fixed','Sanity Checked'],
-  RE: ['Reopened (migrated)','Blocked']
+  RE: ['Reopened (migrated)']
 };
 
 function loadConfig(){
@@ -1345,6 +2316,9 @@ function applyConfig(){
   /* Rebuild status filter dropdown with latest data statuses */
   populateMsRelease();
   populateMsStatus();
+  populateMsTeam();
+  populateMsSeverity();
+  populateMsKnown();
   go();
   /* Show brief confirmation */
   var btn=document.getElementById('cfgToggleBtn');
@@ -1353,26 +2327,33 @@ function applyConfig(){
   setTimeout(function(){btn.innerHTML=orig;},1800);
 }
 
-function fmtDMY(val){
-  if(!val||val==='TBD') return val||'TBD';
-  var d=new Date(val);
-  if(isNaN(d.getTime())){
-    /* try M/d/yyyy parse */
-    var p=val.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if(p) d=new Date(+p[3],+p[1]-1,+p[2]);
-  }
-  if(isNaN(d.getTime())) return val;
-  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var dd=String(d.getDate()).padStart(2,'0');
-  var mmm=months[d.getMonth()];
-  var yy=String(d.getFullYear()).slice(-2);
-  return dd+'-'+mmm+'-'+yy;
-}
 
 window.addEventListener('DOMContentLoaded',function(){
   loadConfig();
+  loadLabelMap(); /* also calls buildArrays() */
+  /* Restore last uploaded data from localStorage — overrides embedded default */
+  try{
+    var saved=localStorage.getItem('skyatc_data');
+    if(saved){
+      var parsed=JSON.parse(saved);
+      if(parsed&&parsed.length){
+        D=parsed;
+        D.forEach(function(d){if(d.status&&!LABEL_MAP[d.status])LABEL_MAP[d.status]=d.status;});
+        buildArrays();
+        var savedTs=localStorage.getItem('skyatc_ts')||'';
+        var savedCnt=localStorage.getItem('skyatc_count')||String(D.length);
+        if(savedTs){
+          document.getElementById('tsLbl').textContent=savedCnt+' records \u00b7 '+savedTs;
+          document.getElementById('dataAsOn').textContent='Data as on '+savedTs;
+        }
+      }
+    }
+  }catch(e){console.warn('Could not restore saved data:',e);}
   populateMsRelease();
   populateMsStatus();
+  populateMsTeam();
+  populateMsSeverity();
+  populateMsKnown();
   go();
 });
 </script>
