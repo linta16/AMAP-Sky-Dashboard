@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.11.16:19</title>
+<title>SKY ATC - Defect Dashboard v2026.06.11.18:44</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -163,9 +163,9 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.16:19</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.18:44</span></h1>
   <div class="hdr-r">
-    <span class="ts" id="tsLbl">Data as on 10 Jun 2026 &nbsp;&middot;&nbsp; 91 records</span>
+    <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
     <button class="btn bs" onclick="window.print()">&#128438; Print / PDF</button>
   </div>
@@ -176,8 +176,8 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
   <input type="file" id="csvFile" accept=".csv,.json" onchange="handleUpload(this)" style="display:none;"/>
   <!-- Upload trigger button -->
   <button class="ubtn" onclick="document.getElementById('csvFile').click()">&#128196; Upload JIRA export</button>
-  <!-- Data-as-on label — updates after upload -->
-  <span id="dataAsOn" class="data-as-on">Data as on 10 Jun 2026</span>
+  <!-- dataAsOn hidden — used only programmatically -->
+  <span id="dataAsOn" style="display:none;">Data as on 10 Jun 2026</span>
   <span id="umsg" class="umsg" style="display:none;"></span>
 </div>
 
@@ -235,6 +235,15 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
       <div class="ms-option ms-all"><input type="checkbox" id="fK-all" checked onchange="msToggleAll('fK',this)"/><label for="fK-all">All</label></div>
       <div class="ms-divider"></div>
       <div id="fK-opts"></div>
+    </div>
+  </div>
+
+  <div class="ms-wrap" id="wrap-fP">
+    <button class="ms-btn" id="btn-fP" onclick="toggleMs('fP')">Planned Date</button>
+    <div class="ms-dropdown" id="dd-fP">
+      <div class="ms-option ms-all"><input type="checkbox" id="fP-all" checked onchange="msToggleAll('fP',this)"/><label for="fP-all">All dates</label></div>
+      <div class="ms-divider"></div>
+      <div id="fP-opts"></div>
     </div>
   </div>
 
@@ -443,10 +452,11 @@ function fd(ix){
   return D.filter(function(d){
     if(!ix&&EX.indexOf(d.status)>=0)return false;
     if(r.length&&r.indexOf(d.release)<0)return false;
-    if(s.length&&s.indexOf(d.status)<0)return false;
+    if(s.length&&s.indexOf(getLabel(d.status))<0)return false;
     if(sv.length&&sv.indexOf(d.severity)<0)return false;
     if(t.length&&t.indexOf(d.team)<0)return false;
     if(k.length&&k.indexOf(d.knownClient)<0)return false;
+    var p=gv('fP');if(p.length&&p.indexOf(d.pcd||'TBD')<0)return false;
     return true;
   });
 }
@@ -788,7 +798,7 @@ function msChange(id){
 }
 function updateMsBtn(id){
   var btn=document.getElementById('btn-'+id);if(!btn)return;
-  var lbls={'fR':'Release','fS':'Status','fSv':'Severity','fT':'Team','fK':'Known to client'};
+  var lbls={'fR':'Release','fS':'Status','fSv':'Severity','fT':'Team','fK':'Known to client','fP':'Planned Date'};
   var allCb=document.getElementById(id+'-all');
   if(allCb&&allCb.checked){btn.innerHTML=lbls[id]||id;btn.classList.remove('has-sel');return;}
   var checked=document.querySelectorAll('#dd-'+id+' input[type=checkbox]:not(#'+id+'-all):checked');
@@ -818,6 +828,18 @@ function populateMsSeverity(){
   });
 }
 
+function populateMsPcd(){
+  var c=document.getElementById('fP-opts');if(!c)return;
+  var vals=[...new Set(D.map(function(d){return d.pcd||'TBD';}))].sort(function(a,b){
+    if(a==='TBD')return -1;if(b==='TBD')return 1;
+    var pa=a.split('-'),pb=b.split('-');
+    var MO={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    return new Date(2000+parseInt(pa[2]),MO[pa[1]]-1,parseInt(pa[0]))-new Date(2000+parseInt(pb[2]),MO[pb[1]]-1,parseInt(pb[0]));
+  });
+  var html='';
+  vals.forEach(function(v,i){var pid='fP-p'+i;html+='<div class="ms-option"><input type="checkbox" id="'+pid+'" value="'+v+'" data-ms="fP"/><label for="'+pid+'">'+v+'</label></div>';});
+  c.innerHTML=html;c.querySelectorAll('input[data-ms]').forEach(function(b){b.addEventListener('change',function(){msChange(b.getAttribute('data-ms'));});});
+}
 function populateMsKnown(){
   var c=document.getElementById('fK-opts');if(!c)return;
   var vals=[...new Set(D.map(function(d){return d.knownClient;}))].filter(Boolean).sort();
@@ -866,25 +888,19 @@ function populateMsRelease(){
 
 function populateMsStatus(){
   var c=document.getElementById('fS-opts');if(!c)return;
-  var sts=[...new Set(D.map(function(d){return d.status;}))].sort();
+  var labels=[...new Set(D.map(function(d){return getLabel(d.status);}))].sort();
   var html='';
-  sts.forEach(function(s,i){
-    var sid='fS-s'+i;
-    var safeVal=s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    var dispLbl=getLabel(s); /* show friendly label but filter on raw value */
-    var dispTxt=dispLbl!==s?dispLbl+' ('+s+')':s;
-    html+='<div class="ms-option"><input type="checkbox" id="'+sid+'" value="'+safeVal+'" data-ms="fS"/>'+
-          '<label for="'+sid+'">'+dispTxt+'</label></div>';
+  labels.forEach(function(lbl,i){
+    var sid='fS-s'+i;var safe=lbl.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    html+='<div class="ms-option"><input type="checkbox" id="'+sid+'" value="'+safe+'" data-ms="fS"/><label for="'+sid+'">'+lbl+'</label></div>';
   });
   c.innerHTML=html;
-  c.querySelectorAll('input[data-ms]').forEach(function(b){
-    b.addEventListener('change',function(){msChange(b.getAttribute('data-ms'));});
-  });
+  c.querySelectorAll('input[data-ms]').forEach(function(b){b.addEventListener('change',function(){msChange(b.getAttribute('data-ms'));});});
 }
 
 
 function rst(){
-  ['fR','fS','fSv','fT','fK'].forEach(function(id){
+  ['fR','fS','fSv','fT','fK','fP'].forEach(function(id){
     var allCb=document.getElementById(id+'-all');
     if(allCb){ allCb.checked=true; allCb.removeAttribute('disabled'); }
     document.querySelectorAll('#dd-'+id+' input[type=checkbox]').forEach(function(b){
@@ -944,9 +960,24 @@ function handleUpload(inp){
          2026-06-11, 20260611, 11-06-2026, 11Jun2026, 11_Jun_2026, Jun 11 2026 etc. */
       var fnDate=extractDateFromFilename(f.name);
       var fallbackTs=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-      var displayDate=fnDate||fallbackTs;
-      document.getElementById('tsLbl').textContent=records.length+' records \u00b7 '+displayDate;
-      document.getElementById('dataAsOn').textContent='Data as on '+displayDate;
+      var now=new Date();var ist=new Date(now.getTime()+5.5*3600000);
+      var pad=function(n){return String(n).padStart(2,'0');};
+      var uploadTime=pad(ist.getUTCHours())+':'+pad(ist.getUTCMinutes())+' IST';
+      var displayDate=(fnDate||fallbackTs)+' · '+uploadTime;
+      /* Format: Last Updated: dd-Mmm-yy HH:MM · X records */
+      var _d=fnDate||fallbackTs;
+      /* Convert to dd-Mmm-yy if possible */
+      var _mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var _ist2=new Date(Date.now()+5.5*3600000);
+      var _dd=String(_ist2.getUTCDate()).padStart(2,'0');
+      var _mm=_mo[_ist2.getUTCMonth()];
+      var _yy=String(_ist2.getUTCFullYear()).slice(2);
+      var _hh=String(_ist2.getUTCHours()).padStart(2,'0');
+      var _min=String(_ist2.getUTCMinutes()).padStart(2,'0');
+      var _fmtDate=_dd+'-'+_mm+'-'+_yy;
+      var _fmtTime=_hh+':'+_min;
+      document.getElementById('tsLbl').textContent='Last Updated: '+_fmtDate+' '+_fmtTime+' \u00b7 '+records.length+' records';
+      /* dataAsOn hidden — not needed */
       populateMsRelease();
       populateMsStatus();
       populateMsTeam();
@@ -961,7 +992,7 @@ function handleUpload(inp){
       /* Persist to localStorage so data survives page refresh */
       try{
         localStorage.setItem('skyatc_data', JSON.stringify(records));
-        localStorage.setItem('skyatc_ts', displayDate);
+        localStorage.setItem('skyatc_ts', document.getElementById('tsLbl').textContent);
         localStorage.setItem('skyatc_count', String(records.length));
       }catch(e){console.warn('localStorage full');}
       el.textContent='\u2713 '+records.length+' records loaded'; el.className='umsg uok';
@@ -1154,7 +1185,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.16:19.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.18:44.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1979,7 +2010,19 @@ function renderCfgMapping(){
              '<span class="rm" title="Remove this status">&#215;</span></span>';
     }).join('');
     return '<tr style="background:'+bg+';border-bottom:0.5px solid #e2e8f0;" data-lbl="'+safeLbl+'">'+
-      '<td style="padding:8px 12px;font-size:12px;font-weight:600;color:'+col+';vertical-align:middle;white-space:nowrap;">'+safeLbl+'</td>'+
+      '<td style="padding:6px 10px;vertical-align:middle;">'+
+        '<div style="display:flex;align-items:center;gap:4px;">'+
+        '<input class="lmap-input cfg-lbl-inp" value="'+safeLbl+'" data-orig-lbl="'+safeLbl+'"'+
+        ' onchange="cfgInlineLabelEdit(this)"'+
+        ' style="font-size:12px;font-weight:600;color:'+col+';border:1px solid transparent;'+
+        'background:transparent;flex:1;padding:2px 4px;border-radius:4px;min-width:0;"'+
+        ' onfocus="this.style.border=\'1px solid #DDD6FE\';this.style.background=\'#fff\'"'+
+        ' onblur="this.style.border=\'1px solid transparent\';this.style.background=\'transparent\'"'+
+        ' title="Click to edit display label"/>'+
+        '<span style="cursor:pointer;color:'+col+';opacity:.5;font-size:12px;flex-shrink:0;" '+
+        'title="Edit display label" onclick="this.previousElementSibling.focus();this.previousElementSibling.select();">&#9998;</span>'+
+        '</div>'+
+      '</td>'+
       '<td style="padding:8px 12px;vertical-align:middle;"><div class="cfg-tags" style="margin:0;">'+pills+'</div></td>'+
       '<td style="padding:8px 10px;vertical-align:middle;">'+
         '<select onchange="cfgGrpChange(this)" data-lbl="'+safeLbl+'"'+
@@ -1993,7 +2036,7 @@ function renderCfgMapping(){
       '</td>'+
       '<td style="text-align:center;padding:8px;vertical-align:middle;">'+
         '<span style="cursor:pointer;color:#dc2626;font-size:16px;font-weight:700;" '+
-        'onclick="cfgRemoveLabel(this)" title="Remove entire label and all its statuses">&#215;</span>'+
+        'onclick="cfgRemoveLabel(this)" title="Remove">&#215;</span>'+
       '</td>'+
     '</tr>';
   }).join('');
@@ -2013,6 +2056,20 @@ function renderCfgMapping(){
 }
 
 /* Group dropdown changed on a row — update all statuses under that label */
+function cfgInlineLabelEdit(inp){
+  var oldLbl=inp.getAttribute('data-orig-lbl');
+  var newLbl=inp.value.trim();
+  if(!newLbl||newLbl===oldLbl) return;
+  /* Update LABEL_MAP */
+  Object.keys(LABEL_MAP).forEach(function(s){
+    if(LABEL_MAP[s]===oldLbl) LABEL_MAP[s]=newLbl;
+  });
+  inp.setAttribute('data-orig-lbl',newLbl);
+  inp.setAttribute('data-lbl',newLbl);
+  inp.closest('tr').setAttribute('data-lbl',newLbl);
+  renderCfgMapping();renderInventory();
+}
+
 function cfgGrpChange(sel){
   var lbl=sel.getAttribute('data-lbl'); var grp=sel.value;
   Object.keys(LABEL_MAP).forEach(function(s){
@@ -2029,6 +2086,44 @@ function cfgGrpChange(sel){
 }
 
 /* Remove entire label row and all its statuses */
+function cfgEditLabel(btn){
+  var row=btn.closest('tr');
+  if(!row) row=btn.parentElement.parentElement; /* fallback */
+  var lbl=row.getAttribute('data-lbl');
+  /* Use a small inline edit — prompt() blocked in some iframes */
+  var existing=document.getElementById('cfgInlineEdit');
+  if(existing) existing.remove();
+  var box=document.createElement('div');
+  box.id='cfgInlineEdit';
+  box.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);'
+    +'background:#fff;border:1px solid #DDD6FE;border-radius:10px;padding:20px 24px;'
+    +'z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.15);min-width:300px;font-family:inherit;';
+  box.innerHTML='<div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:12px;">Edit display label</div>'
+    +'<input id="cfgEditInput" type="text" value="'+lbl.replace(/"/g,'&quot;')+'"'
+    +' style="width:100%;font-size:13px;padding:6px 10px;border:1px solid #DDD6FE;border-radius:5px;font-family:inherit;box-sizing:border-box;"/>'
+    +'<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">'
+    +'<button onclick="document.getElementById(\'cfgInlineEdit\').remove()"'
+    +' style="font-size:12px;padding:5px 14px;border:1px solid #e2e8f0;border-radius:5px;cursor:pointer;background:#fff;">Cancel</button>'
+    +'<button onclick="cfgEditLabelApply(\''+lbl.replace(/\'/g,"\\\'")+'\')"'
+    +' style="font-size:12px;padding:5px 14px;background:#059669;color:#fff;border:none;border-radius:5px;cursor:pointer;">Save</button>'
+    +'</div>';
+  document.body.appendChild(box);
+  var inp=document.getElementById('cfgEditInput');
+  inp.focus();inp.select();
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter') cfgEditLabelApply(lbl);
+    if(e.key==='Escape') box.remove();
+  });
+}
+function cfgEditLabelApply(oldLbl){
+  var inp=document.getElementById('cfgEditInput');
+  if(!inp) return;
+  var n=inp.value.trim();
+  document.getElementById('cfgInlineEdit').remove();
+  if(!n||n===oldLbl) return;
+  Object.keys(LABEL_MAP).forEach(function(s){if(LABEL_MAP[s]===oldLbl)LABEL_MAP[s]=n;});
+  renderCfgMapping();renderInventory();
+}
 function cfgRemoveLabel(btn){
   var row=btn.closest('tr'); var lbl=row.getAttribute('data-lbl');
   Object.keys(LABEL_MAP).forEach(function(s){
@@ -2260,6 +2355,7 @@ function applyAllConfig(){
   populateMsTeam();
   populateMsSeverity();
   populateMsKnown();
+  populateMsPcd();
   go();
   renderInventory();
   var msg=document.getElementById('cfgAppliedMsg');
@@ -2354,6 +2450,7 @@ function applyConfig(){
   populateMsTeam();
   populateMsSeverity();
   populateMsKnown();
+  populateMsPcd();
   go();
   /* Show brief confirmation */
   var btn=document.getElementById('cfgToggleBtn');
@@ -2378,8 +2475,17 @@ window.addEventListener('DOMContentLoaded',function(){
         var savedTs=localStorage.getItem('skyatc_ts')||'';
         var savedCnt=localStorage.getItem('skyatc_count')||String(D.length);
         if(savedTs){
-          document.getElementById('tsLbl').textContent=savedCnt+' records \u00b7 '+savedTs;
-          document.getElementById('dataAsOn').textContent='Data as on '+savedTs;
+          /* Reformat legacy timestamps to new format */
+          var _ts=savedTs;
+          if(_ts && _ts.indexOf('Last Updated:')<0){
+            /* Old format — rebuild from savedCnt + savedTs */
+            var _mo2=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            var _n2=new Date();var _i2=new Date(_n2.getTime()+5.5*3600000);
+            var _p2=function(n){return String(n).padStart(2,'0');};
+            _ts='Last Updated: '+_p2(_i2.getUTCDate())+'-'+_mo2[_i2.getUTCMonth()]+'-'+String(_i2.getUTCFullYear()).slice(2)+' '+_p2(_i2.getUTCHours())+':'+_p2(_i2.getUTCMinutes())+' \u00b7 '+(savedCnt||D.length)+' records';
+            localStorage.setItem('skyatc_ts',_ts);
+          }
+          document.getElementById('tsLbl').textContent=_ts;
         }
       }
     }
@@ -2389,6 +2495,7 @@ window.addEventListener('DOMContentLoaded',function(){
   populateMsTeam();
   populateMsSeverity();
   populateMsKnown();
+  populateMsPcd();
   go();
 });
 </script>
