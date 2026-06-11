@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.11.21:57</title>
+<title>SKY ATC - Defect Dashboard v2026.06.11.22:00</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -91,7 +91,7 @@ body{max-width:100%;overflow-x:hidden;font-family:-apple-system,BlinkMacSystemFo
 .tbar label{font-size:11px;color:#64748b;margin-right:3px;}
 .tbar select{font-size:12px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;color:#1a1a2e;cursor:pointer;}
 .main{padding:16px 24px;}
-.sbar{background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:14px 24px;margin-bottom:14px;}
+.sbar{width:100%;box-sizing:border-box;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:14px 24px;margin-bottom:14px;}
 .sbar b{color:#1e3a5f;font-weight:600;}
 .sevtiles{flex-wrap:wrap;margin-bottom:14px;}
 .stile{border-radius:10px;padding:14px 16px;border:1px solid;}
@@ -163,7 +163,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.21:57</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.22:00</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -480,7 +480,7 @@ function go(){
   /* Closed/Rejected Today: EX status AND updated = today */
   var closedToday   = all.filter(function(d){return EX.indexOf(d.status)>=0 && d.updated===todayFmt;}).length;
   document.getElementById('sb').innerHTML=
-    '<div style="display:grid;grid-template-columns:7fr 3fr;gap:16px;">'+
+    '<div style="display:grid;grid-template-columns:7fr 3fr;gap:16px;width:100%;">'+
     '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;">'+
       '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:#4c1d95;margin-bottom:12px;text-align:center;">Overall Summary</div>'+
       '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;">'+
@@ -517,7 +517,6 @@ function go(){
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
           '<div style="font-size:12px;color:#065f46;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Fixed</div>'+
           '<div style="font-size:20px;font-weight:700;color:#065f46;line-height:1;">'+fixedToday+'</div>'+
-          '<div style="font-size:10px;color:#374151;margin-top:3px;white-space:nowrap;">Planned - '+plannedToday+'</div>'+
         '</div>'+
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
           '<div style="font-size:12px;color:#92400e;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;">Reopened</div>'+
@@ -1211,7 +1210,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.21:57.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.22:00.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
