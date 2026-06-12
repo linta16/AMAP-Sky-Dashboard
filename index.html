@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.11.22:09</title>
+<title>SKY ATC - Defect Dashboard v2026.06.12.09:34</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -163,7 +163,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.11.22:09</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.09:34</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -184,7 +184,8 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 
 <!-- ── TAB NAVIGATION ────────────────────────────────────────── -->
 <div class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('dashboard')" id="tab-dashboard">&#128202; Dashboard</button>
+  <button class="tab-btn active" onclick="switchTab('dashboard')" id="tab-dashboard">&#128202; Defects</button>
+  <button class="tab-btn" onclick="switchTab('qa')" id="tab-qa">&#9989; QA</button>
   <button class="tab-btn" onclick="switchTab('config')" id="tab-config">&#9881; Configuration</button>
 </div>
 
@@ -192,6 +193,10 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <div class="tab-pane active" id="pane-dashboard">
 
 <div class="tbar">
+
+  <button class="btn bx" id="btn-atcip" onclick="toggleAtcip()" style="font-size:11px;padding:5px 14px;border-radius:5px;font-weight:600;">ATCI/P</button>
+  <button class="btn bx" id="btn-prevwk" onclick="applyWeekFilter('prev')" style="font-size:11px;padding:5px 14px;border-radius:5px;">Prev Week</button>
+  <button class="btn bx" id="btn-currwk" onclick="applyWeekFilter('curr')" style="font-size:11px;padding:5px 14px;border-radius:5px;">Current Week</button>
 
   <div class="ms-wrap" id="wrap-fR">
     <button class="ms-btn" id="btn-fR" onclick="toggleMs('fR')">Release</button>
@@ -247,6 +252,15 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
     </div>
   </div>
 
+  <div class="ms-wrap" id="wrap-fU">
+    <button class="ms-btn" id="btn-fU" onclick="toggleMs('fU')">Updated</button>
+    <div class="ms-dropdown" id="dd-fU">
+      <div class="ms-option ms-all"><input type="checkbox" id="fU-all" checked onchange="msToggleAll('fU',this)"/><label for="fU-all">All dates</label></div>
+      <div class="ms-divider"></div>
+      <div id="fU-opts"></div>
+    </div>
+  </div>
+
   <button class="btn bx" onclick="rst()">&#8635; Reset</button>
 </div>
 
@@ -284,6 +298,14 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 </div><!-- end pane-dashboard -->
 
 <!-- ══ TAB: CONFIG ══════════════════════════════════════ -->
+<div class="tab-pane" id="pane-qa">
+  <div style="padding:60px 24px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:16px;">&#9989;</div>
+    <div style="font-size:20px;font-weight:600;color:#4c1d95;margin-bottom:8px;">QA Metrics</div>
+    <div style="font-size:13px;color:#64748b;">Coming soon — placeholder for QA dashboard</div>
+  </div>
+</div>
+
 <div class="tab-pane" id="pane-config">
   <div style="padding:20px 24px;max-width:960px;">
 
@@ -457,6 +479,7 @@ function fd(ix){
     if(t.length&&t.indexOf(d.team)<0)return false;
     if(k.length&&k.indexOf(d.knownClient)<0)return false;
     var p=gv('fP');if(p.length&&p.indexOf(d.pcd||'TBD')<0)return false;
+    var u=gv('fU');if(u.length&&u.indexOf(d.updated||'')<0)return false;
     return true;
   });
 }
@@ -517,6 +540,7 @@ function go(){
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
           '<div style="font-size:12px;color:#065f46;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;white-space:nowrap;">Fixed</div>'+
           '<div style="font-size:20px;font-weight:700;color:#065f46;line-height:1;">'+fixedToday+'</div>'+
+          '<div style="font-size:10px;color:#374151;margin-top:3px;white-space:nowrap;">Planned - '+plannedToday+'</div>'+
         '</div>'+
         '<div style="padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;">'+
           '<div style="font-size:12px;color:#92400e;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;white-space:nowrap;">Reopened</div>'+
@@ -525,6 +549,9 @@ function go(){
         '<div style="padding:0 10px;text-align:center;">'+
           '<div style="font-size:12px;color:#991b1b;text-transform:uppercase;letter-spacing:0;margin-bottom:3px;white-space:nowrap;">Closed / Rejected</div>'+
           '<div style="font-size:20px;font-weight:700;color:#991b1b;line-height:1;">'+closedToday+'</div>'+
+          '<div style="font-size:10px;color:#374151;margin-top:3px;">'+
+            (function(){var lc={};all.filter(function(d){return EX.indexOf(d.status)>=0&&d.updated===todayFmt;}).forEach(function(d){var l=getLabel(d.status);lc[l]=(lc[l]||0)+1;});return Object.keys(lc).sort().map(function(l){return '<span style="color:#991b1b;font-weight:600;">'+lc[l]+'</span> '+l;}).join(' / ');})()+''+
+          '</div>'+
         '</div>'+
       '</div>'+
     '</div>'+
@@ -821,7 +848,7 @@ function msChange(id){
 }
 function updateMsBtn(id){
   var btn=document.getElementById('btn-'+id);if(!btn)return;
-  var lbls={'fR':'Release','fS':'Status','fSv':'Severity','fT':'Team','fK':'Known to client','fP':'Planned Date'};
+  var lbls={'fR':'Release','fS':'Status','fSv':'Severity','fT':'Team','fK':'Known to client','fP':'Planned Date','fU':'Updated'};
   var allCb=document.getElementById(id+'-all');
   if(allCb&&allCb.checked){btn.innerHTML=lbls[id]||id;btn.classList.remove('has-sel');return;}
   var checked=document.querySelectorAll('#dd-'+id+' input[type=checkbox]:not(#'+id+'-all):checked');
@@ -851,6 +878,19 @@ function populateMsSeverity(){
   });
 }
 
+function populateMsUpdated(){
+  var c=document.getElementById('fU-opts');if(!c)return;
+  var vals=[...new Set(D.map(function(d){return d.updated||''}))].filter(Boolean).sort(function(a,b){
+    var pa=a.split('-'),pb=b.split('-');
+    var MO={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    return new Date(2000+parseInt(pa[2]),MO[pa[1]]-1,parseInt(pa[0]))-new Date(2000+parseInt(pb[2]),MO[pb[1]]-1,parseInt(pb[0]));
+  });
+  var html='';
+  vals.forEach(function(v,i){var uid='fU-u'+i;html+='<div class="ms-option"><input type="checkbox" id="'+uid+'" value="'+v+'" data-ms="fU"/><label for="'+uid+'">'+v+'</label></div>';});
+  c.innerHTML=html;
+  c.querySelectorAll('input[data-ms]').forEach(function(b){b.addEventListener('change',function(){msChange(b.getAttribute('data-ms'));});});
+}
+
 function populateMsPcd(){
   var c=document.getElementById('fP-opts');if(!c)return;
   var vals=[...new Set(D.map(function(d){return d.pcd||'TBD';}))].sort(function(a,b){
@@ -865,7 +905,11 @@ function populateMsPcd(){
 }
 function populateMsKnown(){
   var c=document.getElementById('fK-opts');if(!c)return;
-  var vals=[...new Set(D.map(function(d){return d.knownClient;}))].filter(Boolean).sort();
+  var vals=[...new Set(D.map(function(d){return d.knownClient;}))].filter(Boolean).sort(function(a,b){
+    if(a==='Yes')return -1;if(b==='Yes')return 1;
+    if(a==='No')return -1;if(b==='No')return 1;
+    return a.localeCompare(b);
+  });
   var html='';
   vals.forEach(function(v,i){
     var kid='fK-k'+i;
@@ -922,8 +966,81 @@ function populateMsStatus(){
 }
 
 
+/* Quick filter state */
+var _atcipOn=false;
+
+function toggleAtcip(){
+  _atcipOn=!_atcipOn;
+  var btn=document.getElementById('btn-atcip');
+  if(btn){btn.style.background=_atcipOn?'#5b21b6':'';btn.style.color=_atcipOn?'#fff':'';}
+  if(_atcipOn){
+    /* Set Team filter to PB and MOM only */
+    var allCb=document.getElementById('fT-all');if(allCb)allCb.checked=false;
+    document.querySelectorAll('#dd-fT input[type=checkbox]:not(#fT-all)').forEach(function(b){
+      b.checked=(b.value==='PB'||b.value==='MOM');
+    });
+    updateMsBtn('fT');
+  } else {
+    var allCb=document.getElementById('fT-all');if(allCb)allCb.checked=true;
+    document.querySelectorAll('#dd-fT input[type=checkbox]:not(#fT-all)').forEach(function(b){b.checked=false;});
+    updateMsBtn('fT');
+  }
+  go();
+}
+
+function applyWeekFilter(which){
+  var btnId=which==='curr'?'btn-currwk':'btn-prevwk';
+  var otherBtnId=which==='curr'?'btn-prevwk':'btn-currwk';
+  var btn=document.getElementById(btnId);
+  var isActive=btn&&btn.getAttribute('data-active')==='1';
+
+  /* Reset other week button */
+  var otherBtn=document.getElementById(otherBtnId);
+  if(otherBtn){otherBtn.style.background='';otherBtn.style.color='';otherBtn.removeAttribute('data-active');}
+
+  if(isActive){
+    /* Second click — reset Updated filter back to All */
+    btn.style.background='';btn.style.color='';btn.removeAttribute('data-active');
+    var allCb=document.getElementById('fU-all');if(allCb)allCb.checked=true;
+    document.querySelectorAll('#dd-fU input[type=checkbox]:not(#fU-all)').forEach(function(b){b.checked=false;});
+    updateMsBtn('fU');
+    go();
+    return;
+  }
+
+  /* First click — apply week filter */
+  btn.style.background='#5b21b6';btn.style.color='#fff';btn.setAttribute('data-active','1');
+
+  var ist=new Date(Date.now()+5.5*3600000);
+  var dow=ist.getUTCDay();
+  var currSun=new Date(ist); currSun.setUTCDate(ist.getUTCDate()-dow); currSun.setUTCHours(0,0,0,0);
+  var startD,endD;
+  if(which==='curr'){
+    startD=currSun;
+    endD=new Date(currSun); endD.setUTCDate(currSun.getUTCDate()+6);
+  } else {
+    startD=new Date(currSun); startD.setUTCDate(currSun.getUTCDate()-7);
+    endD=new Date(currSun); endD.setUTCDate(currSun.getUTCDate()-1);
+  }
+  var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function fmt(d){return String(d.getUTCDate()).padStart(2,'0')+'-'+MO[d.getUTCMonth()]+'-'+String(d.getUTCFullYear()).slice(2);}
+  var dates=[]; var cur=new Date(startD);
+  while(cur<=endD){dates.push(fmt(cur));cur.setUTCDate(cur.getUTCDate()+1);}
+  var allCb=document.getElementById('fU-all');if(allCb)allCb.checked=false;
+  document.querySelectorAll('#dd-fU input[type=checkbox]:not(#fU-all)').forEach(function(b){
+    b.checked=dates.indexOf(b.value)>=0;
+  });
+  updateMsBtn('fU');
+  go();
+}
+
 function rst(){
-  ['fR','fS','fSv','fT','fK','fP'].forEach(function(id){
+  /* Clear quick filter button states */
+  ['btn-atcip','btn-prevwk','btn-currwk'].forEach(function(id){
+    var b=document.getElementById(id);if(b){b.style.background='';b.style.color='';b.removeAttribute('data-active');}
+  });
+  _atcipOn=false;
+  ['fR','fS','fSv','fT','fK','fP','fU'].forEach(function(id){
     var allCb=document.getElementById(id+'-all');
     if(allCb){ allCb.checked=true; allCb.removeAttribute('disabled'); }
     document.querySelectorAll('#dd-'+id+' input[type=checkbox]').forEach(function(b){
@@ -1210,7 +1327,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.11.22:09.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.09:34.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2413,10 +2530,11 @@ function renderInventory(){
 
 /* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── */
 function switchTab(name){
-  ['dashboard','config'].forEach(function(t){
+  ['dashboard','qa','config'].forEach(function(t){
     document.getElementById('pane-'+t).classList.toggle('active', t===name);
     document.getElementById('tab-'+t).classList.toggle('active', t===name);
   });
+  if(name==='qa'){} /* placeholder */
   if(name==='config'){renderCfgMapping();renderInventory();}
 }
 
@@ -2493,6 +2611,7 @@ function applyAllConfig(){
   populateMsSeverity();
   populateMsKnown();
   populateMsPcd();
+  populateMsUpdated();
   go();
   renderInventory();
   var msg=document.getElementById('cfgAppliedMsg');
@@ -2588,6 +2707,7 @@ function applyConfig(){
   populateMsSeverity();
   populateMsKnown();
   populateMsPcd();
+  populateMsUpdated();
   go();
   /* Show brief confirmation */
   var btn=document.getElementById('cfgToggleBtn');
@@ -2633,6 +2753,7 @@ window.addEventListener('DOMContentLoaded',function(){
   populateMsSeverity();
   populateMsKnown();
   populateMsPcd();
+  populateMsUpdated();
   go();
 });
 </script>
