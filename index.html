@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Dashboard v2026.06.12.17:52</title>
+<title>SKY ATC - Dashboard v2026.06.12.18:49</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -164,7 +164,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.17:52</span></h1>
+  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.18:49</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl" style="display:none;"></span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -195,6 +195,9 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
     background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">
     <option value="">All Cycles</option>
   </select>
+  <button onclick="qaRst()" title="Reset filters"
+    style="background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:5px;
+    padding:4px 8px;font-size:15px;cursor:pointer;flex-shrink:0;">&#8635;</button>
   <span id="qaTsLbl" style="color:rgba(255,255,255,.75);font-size:11px;margin-left:8px;white-space:nowrap;"></span>
 </div>
 
@@ -203,12 +206,22 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 
 <!-- ── TAB NAVIGATION ────────────────────────────────────────── -->
 <div class="tab-nav">
+  <button class="tab-btn" onclick="switchTab('release')" id="tab-release">&#128203; Release Summary</button>
   <button class="tab-btn active" onclick="switchTab('dashboard')" id="tab-dashboard">&#128202; Defects</button>
-  <button class="tab-btn" onclick="switchTab('qa')" id="tab-qa">&#9989; QA</button>
+  <button class="tab-btn" onclick="switchTab('integration')" id="tab-integration">&#128260; Integration</button>
+  <button class="tab-btn" onclick="switchTab('uat')" id="tab-uat">&#9989; UAT</button>
   <button class="tab-btn" onclick="switchTab('config')" id="tab-config">&#9881; Configuration</button>
 </div>
 
 <!-- ══════════════ TAB: DASHBOARD ════════════════════════════ -->
+<div class="tab-pane" id="pane-release">
+  <div style="padding:60px 24px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:16px;">&#128203;</div>
+    <div style="font-size:20px;font-weight:600;color:#4c1d95;margin-bottom:8px;">Release Summary</div>
+    <div style="font-size:13px;color:#64748b;">Coming soon — cross-release metrics and trend view</div>
+  </div>
+</div>
+
 <div class="tab-pane active" id="pane-dashboard">
 
 <div class="tbar">
@@ -317,92 +330,125 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 </div><!-- end pane-dashboard -->
 
 <!-- ══ TAB: CONFIG ══════════════════════════════════════ -->
-<div class="tab-pane" id="pane-qa">
+<div class="tab-pane" id="pane-integration">
 
+  <!-- Integration sub-tabs -->
+  <div style="display:flex;gap:0;border-bottom:2px solid #DDD6FE;margin-bottom:14px;margin-top:4px;">
+    <button id="integrationTab-exec" onclick="switchSubTab('integration','exec')"
+      style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;
+      color:#4c1d95;border-bottom:2px solid #4c1d95;margin-bottom:-2px;">
+      &#128200; Execution Summary
+    </button>
+    <button id="integrationTab-defects" onclick="switchSubTab('integration','defects')"
+      style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;
+      color:#94a3b8;border-bottom:2px solid transparent;margin-bottom:-2px;">
+      &#128203; Defect Details
+    </button>
+  </div>
 
-
-
-  <!-- QA main content -->
-  <div class="main" id="qaMain" style="display:none;">
-
-    <!-- QA Sub-tabs -->
-    <div style="display:flex;gap:0;border-bottom:2px solid #DDD6FE;margin-bottom:14px;">
-      <button id="qaTab-summary" onclick="switchQaTab('summary')"
-        style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;
-        color:#4c1d95;border-bottom:2px solid #4c1d95;margin-bottom:-2px;">
-        Execution Summary
-      </button>
-      <button id="qaTab-defects" onclick="switchQaTab('defects')"
-        style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;
-        color:#94a3b8;border-bottom:2px solid transparent;margin-bottom:-2px;">
-        Defect Details
-      </button>
-    </div>
-
-    <!-- QA Sub-pane: Execution Summary -->
-    <div id="qaPane-summary">
-
-    <!-- Summary tiles -->
-    <div id="qaSb" style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;
-      padding:14px 24px;margin-bottom:14px;"></div>
-
-    <!-- By Folder table -->
+  <!-- Execution Summary sub-pane -->
+  <div id="integrationPane-exec">
+    <div id="qaSb-integration" style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:14px 24px;margin-bottom:14px;"></div>
     <div class="card" style="margin-bottom:14px;">
       <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">EXECUTION BY FOLDER</div>
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
-          <thead>
-            <tr style="background:#F5F3FF;">
-              <th style="padding:8px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;white-space:nowrap;">Release</th>
-              <th style="padding:8px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;white-space:nowrap;">Folder</th>
-              <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Total</th>
-              <th style="padding:8px 10px;text-align:center;color:#065f46;border-bottom:1px solid #DDD6FE;">Pass</th>
-              <th style="padding:8px 10px;text-align:center;color:#dc2626;border-bottom:1px solid #DDD6FE;">Fail</th>
-              <th style="padding:8px 10px;text-align:center;color:#92400e;border-bottom:1px solid #DDD6FE;">Blocked</th>
-              <th style="padding:8px 10px;text-align:center;color:#6b7280;border-bottom:1px solid #DDD6FE;">De-scoped</th>
-              <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Exec %</th>
-              <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Pass Rate</th>
-            </tr>
-          </thead>
-          <tbody id="qaFolderTbl"></tbody>
+          <thead><tr style="background:#F5F3FF;">
+            <th style="padding:8px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;white-space:nowrap;">Release</th>
+            <th style="padding:8px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;white-space:nowrap;">Folder</th>
+            <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Total</th>
+            <th style="padding:8px 10px;text-align:center;color:#065f46;border-bottom:1px solid #DDD6FE;">Pass</th>
+            <th style="padding:8px 10px;text-align:center;color:#dc2626;border-bottom:1px solid #DDD6FE;">Fail</th>
+            <th style="padding:8px 10px;text-align:center;color:#92400e;border-bottom:1px solid #DDD6FE;">Blocked</th>
+            <th style="padding:8px 10px;text-align:center;color:#6b7280;border-bottom:1px solid #DDD6FE;">De-scoped</th>
+            <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Exec %</th>
+            <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Pass Rate</th>
+          </tr></thead>
+          <tbody id="qaFolderTbl-integration"></tbody>
         </table>
       </div>
     </div>
+  </div>
 
-
-    </div><!-- end qaPane-summary -->
-
-    <!-- QA Sub-pane: Defect Details -->
-    <div id="qaPane-defects" style="display:none;">
-
-    <!-- Charts row -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+  <!-- Defect Details sub-pane -->
+  <div id="integrationPane-defects" style="display:none;">
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:14px;align-items:stretch;">
       <div class="card">
-        <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">BY STATUS</div>
-        <canvas id="qaStatusChart" height="90"></canvas>
+        <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;text-align:center;">BY STATUS</div>
+        <canvas id="qaStatusChart-integration" height="160"></canvas>
       </div>
       <div class="card">
-        <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">BY COMPONENT</div>
-        <canvas id="qaCompChart" height="180"></canvas>
+        <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;text-align:center;">BY FOLDER</div>
+        <canvas id="qaCompChart-integration" height="160"></canvas>
       </div>
     </div>
-
-    <!-- Defect linkage -->
     <div class="card">
-      <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">LINKED DEFECTS</div>
-      <div id="qaDefects" style="font-size:12px;color:#374151;"></div>
-    </div><!-- end defect details card -->
-    </div><!-- end qaPane-defects -->
-
-  </div><!-- end qaMain -->
-
-  <!-- Empty state -->
-  <div id="qaEmpty" style="padding:60px 24px;text-align:center;">
-    <div style="font-size:48px;margin-bottom:16px;">&#9989;</div>
-    <div style="font-size:18px;font-weight:600;color:#4c1d95;margin-bottom:8px;">QA Metrics</div>
-    <div style="font-size:13px;color:#64748b;">Upload a test execution extract (xlsx/csv) to view QA metrics</div>
+      <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;text-align:center;">LINKED DEFECTS</div>
+      <div id="qaDefects-integration" style="font-size:12px;color:#374151;"></div>
+    </div>
   </div>
-</div></div>
+
+</div>
+
+<div class="tab-pane" id="pane-uat">
+
+  <!-- UAT sub-tabs -->
+  <div style="display:flex;gap:0;border-bottom:2px solid #DDD6FE;margin-bottom:14px;margin-top:4px;">
+    <button id="uatTab-exec" onclick="switchSubTab('uat','exec')"
+      style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;
+      color:#4c1d95;border-bottom:2px solid #4c1d95;margin-bottom:-2px;">
+      &#128200; Execution Summary
+    </button>
+    <button id="uatTab-defects" onclick="switchSubTab('uat','defects')"
+      style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;
+      color:#94a3b8;border-bottom:2px solid transparent;margin-bottom:-2px;">
+      &#128203; Defect Details
+    </button>
+  </div>
+
+  <!-- Execution Summary sub-pane -->
+  <div id="uatPane-exec">
+    <div id="qaSb-uat" style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:14px 24px;margin-bottom:14px;"></div>
+    <div class="card" style="margin-bottom:14px;">
+      <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">EXECUTION BY FOLDER</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="background:#F5F3FF;">
+            <th style="padding:8px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;white-space:nowrap;">Release</th>
+            <th style="padding:8px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;white-space:nowrap;">Folder</th>
+            <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Total</th>
+            <th style="padding:8px 10px;text-align:center;color:#065f46;border-bottom:1px solid #DDD6FE;">Pass</th>
+            <th style="padding:8px 10px;text-align:center;color:#dc2626;border-bottom:1px solid #DDD6FE;">Fail</th>
+            <th style="padding:8px 10px;text-align:center;color:#92400e;border-bottom:1px solid #DDD6FE;">Blocked</th>
+            <th style="padding:8px 10px;text-align:center;color:#6b7280;border-bottom:1px solid #DDD6FE;">De-scoped</th>
+            <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Exec %</th>
+            <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Pass Rate</th>
+          </tr></thead>
+          <tbody id="qaFolderTbl-uat"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Defect Details sub-pane -->
+  <div id="uatPane-defects" style="display:none;">
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:14px;align-items:stretch;">
+      <div class="card">
+        <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;text-align:center;">BY STATUS</div>
+        <canvas id="qaStatusChart-uat" height="160"></canvas>
+      </div>
+      <div class="card">
+        <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;text-align:center;">BY FOLDER</div>
+        <canvas id="qaCompChart-uat" height="160"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;text-align:center;">LINKED DEFECTS</div>
+      <div id="qaDefects-uat" style="font-size:12px;color:#374151;"></div>
+    </div>
+  </div>
+
+</div>
 
 <div class="tab-pane" id="pane-config">
   <div style="padding:20px 24px;max-width:960px;">
@@ -521,6 +567,7 @@ Regards</textarea>
 </div>
 
 <script>
+/* ══
 /* ═══════════════════════════════════════════════
    DEFAULT DATA  —  10 Jun 2026 JIRA export
    Upload a new CSV to replace this instantly.
@@ -1425,7 +1472,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.17:52.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.18:49.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2627,20 +2674,34 @@ function renderInventory(){
 }
 
 /* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── *//* ── Tab switching ── */
-function switchTab(name){
-  ['dashboard','qa','config'].forEach(function(t){
-    document.getElementById('pane-'+t).classList.toggle('active', t===name);
-    document.getElementById('tab-'+t).classList.toggle('active', t===name);
+function switchSubTab(pid, sub){
+  ['exec','defects'].forEach(function(t){
+    var p=document.getElementById(pid+'Pane-'+t);
+    var b=document.getElementById(pid+'Tab-'+t);
+    if(p)p.style.display=t===sub?'block':'none';
+    if(b){b.style.color=t===sub?'#4c1d95':'#94a3b8';b.style.borderBottomColor=t===sub?'#4c1d95':'transparent';}
   });
-  if(name==='qa'){} /* placeholder */
-  /* Show correct ubar per tab */
+  /* Render charts when switching to exec or defects */
+  if(sub==='exec'||sub==='defects') qaRenderForType(pid);
+}
+
+function switchTab(name){
+  ['release','dashboard','integration','uat','config'].forEach(function(t){
+    var p=document.getElementById('pane-'+t);
+    var b=document.getElementById('tab-'+t);
+    if(p)p.classList.toggle('active',t===name);
+    if(b)b.classList.toggle('active',t===name);
+  });
+  /* Show upload bar only on Defects */
   var ud=document.getElementById('ubar-defects');
   var uq=document.getElementById('ubar-qa');
-  if(ud) ud.style.display=name==='dashboard'?'':'none';
-  if(uq) uq.style.display=name==='qa'?'':'none';
+  if(ud)ud.style.display=name==='dashboard'?'':'none';
+  if(uq)uq.style.display=(name==='integration'||name==='uat')?'':'none';
   if(name==='config'){renderCfgMapping();renderInventory();}
-  if(name==='qa'&&QA.length>0){qaGo();}
+  if(name==='integration'&&QA.length>0){updateReleasesForType('integration');qaRenderForType('integration');}
+  if(name==='uat'&&QA.length>0){updateReleasesForType('uat');qaRenderForType('uat');}
 }
+
 
 /* ── Config tab functions ── */
 function renderAllTags(){
@@ -2870,7 +2931,7 @@ window.addEventListener('DOMContentLoaded',function(){
     if(savedQa){
       try{
         var _test=JSON.parse(savedQa);
-        if(_test.length>0&&(_test[0].release===undefined||_test[0].release===null)){
+        if(_test.length>0&&(_test[0].release===undefined||_test[0].release===null||_test[0].testType===undefined)){
           localStorage.removeItem('skyatc_qa');
           localStorage.removeItem('skyatc_qa_ts');
           savedQa=null;
@@ -2939,7 +3000,9 @@ function handleQaUpload(inp){
 
   files.forEach(function(file){
     var name=file.name.toLowerCase();
-    /* Extract release from filename: strip common prefixes, convert R1_2→R1.2 */
+    var _isUAT=/UAT/i.test(file.name);
+    var _testType=_isUAT?'UAT':'Integration';
+    /* Extract release from filename */
     var _fn=file.name.replace(/\.[^.]+$/,'');
     /* Strip longer prefixes first, then shorter */
     var _prefixes=[
@@ -2961,7 +3024,11 @@ function handleQaUpload(inp){
       var reader=new FileReader();
       reader.onload=function(e){
         var rows=parseQaCsv(e.target.result);
-        rows.forEach(function(r){r.release=relFromName;if(!r.cycle)r.cycle=relFromName;});
+        rows.forEach(function(r){
+          r.testType=_testType;
+          r.release=_isUAT?(function(){var m=r.folder?r.folder.match(/^([\d\.]+)\s*-/):null;return m?m[1].trim():relFromName;})():relFromName;
+          if(!r.cycle)r.cycle=relFromName;
+        });
         onFileDone(rows, file.name);
       };
       reader.readAsText(file);
@@ -2985,6 +3052,10 @@ function handleQaUpload(inp){
               release:relFromName,
               cycle:(r['Cycle']||'').toString()
             };
+          });
+          parsed.forEach(function(row){
+            row.testType=_testType;
+            if(_isUAT){var m=(row.folder||'').match(/^([\d\.]+)\s*-/);if(m)row.release=m[1].trim();}
           });
           onFileDone(parsed, file.name);
         }catch(err){
@@ -3011,10 +3082,11 @@ function parseQaCsv(text){
 
 function qaAfterLoad(fname){
   /* Populate Release dropdown from filenames */
-  var releases=[...new Set(QA.map(function(d){return d.release||''}))].filter(Boolean).sort();
+  /* Populate Release dropdown — integration releases from filename, UAT from folder */
+  var allReleases=[...new Set(QA.map(function(d){return d.release||''}))].filter(Boolean).sort();
   var relSel=document.getElementById('qaRelSel');
   relSel.innerHTML='<option value="">All Releases</option>';
-  releases.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;relSel.appendChild(o);});
+  allReleases.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;relSel.appendChild(o);});
   /* Populate Cycle dropdown */
   var cycles=[...new Set(QA.map(function(d){return d.cycle||''}))].filter(Boolean).sort();
   var cycSel=document.getElementById('qaCycleSel');
@@ -3042,34 +3114,55 @@ function qaAfterLoad(fname){
   qaGo();
 }
 
-function switchQaTab(name){
-  ['summary','defects'].forEach(function(t){
-    var pane=document.getElementById('qaPane-'+t);
-    var btn=document.getElementById('qaTab-'+t);
-    if(pane) pane.style.display=t===name?'block':'none';
-    if(btn){
-      btn.style.color=t===name?'#4c1d95':'#94a3b8';
-      btn.style.borderBottomColor=t===name?'#4c1d95':'transparent';
-    }
-  });
+
+
+
+function qaRst(){
+  var relSel=document.getElementById('qaRelSel');
+  var cycSel=document.getElementById('qaCycleSel');
+  if(relSel)relSel.value='';
+  if(cycSel)cycSel.value='';
+  qaGo();
 }
 
 function qaGo(){
+  qaRenderForType('integration');
+  qaRenderForType('uat');
+}
+
+function updateReleasesForType(typ){
+  var typeLabel=typ.charAt(0).toUpperCase()+typ.slice(1);
+  var typedReleases=[...new Set(QA
+    .filter(function(d){return (d.testType||'Integration').toLowerCase()===typ.toLowerCase();})
+    .map(function(d){return d.release||''}))].filter(Boolean).sort();
+  var relSel=document.getElementById('qaRelSel');
+  if(relSel){
+    var cur=relSel.value;
+    relSel.innerHTML='<option value="">All Releases</option>';
+    typedReleases.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;relSel.appendChild(o);});
+    /* Restore selection if still valid */
+    if(typedReleases.indexOf(cur)>=0)relSel.value=cur;
+  }
+}
+
+function qaRenderForType(typ){
   var rel=(document.getElementById('qaRelSel')||{}).value||'';
   var cyc=(document.getElementById('qaCycleSel')||{}).value||'';
   var data=QA.filter(function(d){
+    if((d.testType||'Integration').toLowerCase()!==typ.toLowerCase())return false;
     if(rel&&(d.release||'')!==rel)return false;
     if(cyc&&(d.cycle||'')!==cyc)return false;
     return true;
   });
-  qaRenderSummary(data);
-  qaRenderFolderTable(data);
-  qaRenderStatusChart(data);
-  qaRenderCompChart(data);
-  qaRenderDefects(data);
+  qaRenderSummary(data, typ);
+  qaRenderFolderTable(data, typ);
+  qaRenderStatusChart(data, typ);
+  qaRenderCompChart(data, typ);
+  qaRenderDefects(data, typ);
 }
 
-function qaRenderSummary(data){
+
+function qaRenderSummary(data,sfx){sfx=sfx||'integration';
   var total=data.length;
   var pass=data.filter(function(d){return d.status==='PASS';}).length;
   var fail=data.filter(function(d){return d.status==='FAIL';}).length;
@@ -3082,7 +3175,7 @@ function qaRenderSummary(data){
   var passPct=executed>0?Math.round(pass/executed*100):0;
   var ts='padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;';
   var tl='padding:0 10px;text-align:center;';
-  document.getElementById('qaSb').innerHTML=
+  document.getElementById('qaSb-'+sfx).innerHTML=
     '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:#4c1d95;margin-bottom:12px;text-align:center;">QA Summary</div>'+
     '<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:0;">'+
       '<div style="'+ts+'"><div style="font-size:12px;color:#5b21b6;text-transform:uppercase;margin-bottom:3px;">Total TCs</div><div style="font-size:20px;font-weight:700;color:#1e3a5f;">'+total+'</div></div>'+
@@ -3102,7 +3195,7 @@ function qaRenderSummary(data){
 }
 
 
-function qaRenderFolderTable(data){
+function qaRenderFolderTable(data,sfx){sfx=sfx||'integration';
   var folders={};
   data.forEach(function(d){
     if(!folders[d.folder])folders[d.folder]={total:0,pass:0,fail:0,blocked:0,descoped:0,release:d.release||''};
@@ -3132,10 +3225,10 @@ function qaRenderFolderTable(data){
       '<td style="padding:7px 10px;text-align:center;font-weight:700;font-size:12px;color:'+passColor+';">'+passPct+'%</td>'+
     '</tr>';
   });
-  document.getElementById('qaFolderTbl').innerHTML=html;
+  document.getElementById('qaFolderTbl-'+sfx).innerHTML=html;
 }
 
-function qaRenderStatusChart(data){
+function qaRenderStatusChart(data,sfx){sfx=sfx||'integration';
   /* Build counts dynamically from all statuses in data */
   var counts={};
   var statusOrder=['PASS','FAIL','BLOCKED','DE-SCOPED','WIP'];
@@ -3154,11 +3247,12 @@ function qaRenderStatusChart(data){
   var labels=allKeys.filter(function(k){return counts[k]>0;});
   var vals=labels.map(function(k){return counts[k];});
   var colors={'PASS':'#059669','FAIL':'#dc2626','BLOCKED':'#d97706','DE-SCOPED':'#94a3b8','WIP':'#818cf8','UNEXECUTED':'#cbd5e1'};
-  var ctx=document.getElementById('qaStatusChart').getContext('2d');
-  if(_qaStatusChart)_qaStatusChart.destroy();
+  var ctx=document.getElementById('qaStatusChart-'+sfx).getContext('2d');
+  if(!window._qaStatusCharts)window._qaStatusCharts={};
+  if(_qaStatusCharts[sfx])_qaStatusCharts[sfx].destroy();
   var total2=vals.reduce(function(a,b){return a+b;},0);
   var centrePlugin={id:'centreText',beforeDraw:function(ch){
-    if(ch.canvas.id!=='qaStatusChart')return;
+    if(ch.canvas.id!=='qaStatusChart-'+sfx)return;
     var c2=ch.ctx,a=ch.chartArea;
     var cx=a?(a.left+a.right)/2:ch.width/2,cy=a?(a.top+a.bottom)/2:ch.height/2;
     c2.save();c2.font='bold 16px sans-serif';c2.fillStyle='#1a1a2e';
@@ -3166,7 +3260,7 @@ function qaRenderStatusChart(data){
     c2.fillText(total2,cx,cy);c2.restore();
   }};
   var segLabelPlugin={id:'segLabels',afterDatasetsDraw:function(ch){
-    if(ch.canvas.id!=='qaStatusChart')return;
+    if(ch.canvas.id!=='qaStatusChart-'+sfx)return;
     var c2=ch.ctx,meta=ch.getDatasetMeta(0);
     meta.data.forEach(function(arc,i){
       var v=ch.data.datasets[0].data[i];
@@ -3184,41 +3278,44 @@ function qaRenderStatusChart(data){
     data:{labels:labels,datasets:[{data:vals,backgroundColor:labels.map(function(l){return colors[l]||'#ccc';}),borderWidth:2,borderColor:'#fff'}]},
     options:{responsive:true,cutout:'55%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}},
     plugins:[centrePlugin,segLabelPlugin]});
+  _qaStatusCharts[sfx]=_qaStatusChart;
 }
 
-function qaRenderCompChart(data){
-  /* Group by component, breakdown by status */
-  var comps={};
+function qaRenderCompChart(data,sfx){
+  sfx=sfx||'integration';
+  /* Group by folder, breakdown by status */
+  var folders={};
   data.forEach(function(d){
-    var c=d.component||'Unknown';
-    if(!comps[c])comps[c]={total:0,pass:0,fail:0,blocked:0,other:0};
-    comps[c].total++;
-    if(d.status==='PASS')comps[c].pass++;
-    else if(d.status==='FAIL')comps[c].fail++;
-    else if(d.status==='BLOCKED')comps[c].blocked++;
-    else comps[c].other++;
+    var f=d.folder||'Unknown';
+    if(!folders[f])folders[f]={total:0,pass:0,fail:0,blocked:0,other:0};
+    folders[f].total++;
+    if(d.status==='PASS')folders[f].pass++;
+    else if(d.status==='FAIL')folders[f].fail++;
+    else if(d.status==='BLOCKED')folders[f].blocked++;
+    else folders[f].other++;
   });
-  var sorted=Object.entries(comps).sort(function(a,b){return b[1].total-a[1].total;}).slice(0,8);
-  var labels=sorted.map(function(e){return e[0];});
-  var ctx=document.getElementById('qaCompChart').getContext('2d');
-  if(_qaCompChart)_qaCompChart.destroy();
+  var sorted=Object.entries(folders).sort(function(a,b){return b[1].total-a[1].total;}).slice(0,10);
+  var labels=sorted.map(function(e){
+    /* Shorten label: take part after ' - ' if present */
+    var f=e[0]; var m=f.match(/^[\d\.]+\s*-\s*(.+)$/);
+    return m?m[1]:f;
+  });
+  var ctx=document.getElementById('qaCompChart-'+sfx).getContext('2d');
+  if(!window._qaCompCharts)window._qaCompCharts={};
+  if(_qaCompCharts[sfx])_qaCompCharts[sfx].destroy();
   var barLabelPlugin={id:'barLabels',afterDatasetsDraw:function(ch){
-    if(ch.canvas.id!=='qaCompChart')return;
-    var c2=ch.ctx;
-    /* Draw total above each bar stack */
-    var nDatasets=ch.data.datasets.length;
-    var lastDs=ch.getDatasetMeta(nDatasets-1);
-    var firstDs=ch.getDatasetMeta(0);
-    labels.forEach(function(_,i){
-      var topBar=lastDs.data[i];
-      var bottomBar=firstDs.data[i];
+    if(ch.canvas.id!=='qaCompChart-'+sfx)return;
+    var c2=ch.ctx,nDs=ch.data.datasets.length;
+    var lastDs=ch.getDatasetMeta(nDs-1);
+    sorted.forEach(function(_,i){
+      var bar=lastDs.data[i];
       var total=sorted[i][1].total;
       c2.save();c2.font='bold 10px sans-serif';c2.fillStyle='#4c1d95';
       c2.textAlign='center';c2.textBaseline='bottom';
-      c2.fillText(total,topBar.x,topBar.y-2);c2.restore();
+      c2.fillText(total,bar.x,bar.y-2);c2.restore();
     });
   }};
-  _qaCompChart=new Chart(ctx,{type:'bar',
+  _qaCompCharts[sfx]=new Chart(ctx,{type:'bar',
     data:{
       labels:labels,
       datasets:[
@@ -3231,7 +3328,7 @@ function qaRenderCompChart(data){
     options:{responsive:true,
       plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:12}}},
       scales:{
-        x:{stacked:true,ticks:{font:{size:10}}},
+        x:{stacked:true,ticks:{font:{size:9},maxRotation:45}},
         y:{stacked:true,beginAtZero:true,ticks:{font:{size:10}}}
       }
     },
@@ -3239,8 +3336,9 @@ function qaRenderCompChart(data){
 }
 
 
-function qaRenderDefects(data){
-  var el=document.getElementById('qaDefects');
+
+function qaRenderDefects(data,sfx){sfx=sfx||'integration';
+  var el=document.getElementById('qaDefects-'+sfx);
   /* Count defects per unique defect key + how many TCs link to each */
   var defectMap={}; /* defectKey → {total, fail, blocked, pass} */
   var tcWithDefects=0; var tcWithout=0;
