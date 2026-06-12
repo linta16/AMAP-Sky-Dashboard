@@ -29,4 +29,4 @@ jobs:
           git config user.name "AMAP Bot"
           git config user.email "amap-bot@noreply.com"
           git add index.html
-          git diff --staged --quiet || (git pull --rebase && git commit -m "Auto-refresh: bake latest data $(date +'%Y-%m-%d %H:%M')" && git push)
+          git diff --staged --quiet && echo "No changes" || (git commit -m "Auto-refresh: bake latest data $(date +'%Y-%m-%d %H:%M')" && git push origin main --force-with-lease)
