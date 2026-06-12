@@ -1,5 +1,5 @@
 ﻿Issue key,Issue id,Status,Created,Custom field (Dev Planned Completion),Updated,Custom field (Target Resolution Date),Custom field (Severity),Custom field (ScrumTeam),Custom field (CHUNK),Custom field (Root Cause),Custom field (Known by Client),Assignee,Assignee Id
-AMAP-68351,237637,New,10/Jun/26 8:22 PM,,10/Jun/26 9:04 PM,,Sev 3 - Major,PB [N],GO UI CR Slot 2 - Order management page full editabilty - R1.4,,Yes,Ramya Venkataraman,5bb968a4e441cd77203a9bcd
+AMAP-68351 ,237637,New,10/Jun/26 8:22 PM,,10/Jun/26 9:04 PM,,Sev 3 - Major,PB [N],GO UI CR Slot 2 - Order management page full editabilty - R1.4,,Yes,Ramya Venkataraman,5bb968a4e441cd77203a9bcd
 AMAP-68350,237636,In Review,10/Jun/26 8:05 PM,11/Jun/26 12:00 AM,11/Jun/26 7:55 PM,15/Jun/26 12:00 AM,Sev 2 - Critical,MOM,IBMS Campaign Integration - R1.3,Missing Requirement,Yes,Mohit Kumar,712020:e255a3e2-a04f-4894-94ec-d4de45e2bf94
 AMAP-68347,237633,New,10/Jun/26 7:53 PM,13/Jun/26 12:00 AM,11/Jun/26 7:43 PM,,Sev 2 - Critical,MOM,IBMS Campaign Integration - R1.3,,Yes,Patrizio Pontecorvi,60951fc6f6c0960069fbea80
 AMAP-68346,237632,Pending Clarification – Client,10/Jun/26 7:41 PM,,11/Jun/26 8:04 PM,,Sev 3 - Major,PB,Versioning & Comparison - R1.2,,Yes,Pooja Bagal,712020:8659cea9-6b25-4228-98ac-4221694f7799
