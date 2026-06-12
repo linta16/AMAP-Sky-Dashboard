@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Dashboard v2026.06.12.17:23</title>
+<title>SKY ATC - Dashboard v2026.06.12.17:27</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -164,7 +164,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.17:23</span></h1>
+  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.17:27</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl" style="display:none;"></span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -213,9 +213,9 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 
 <div class="tbar">
 
-  <button class="btn bx" id="btn-atcip" onclick="toggleAtcip()" style="font-size:11px;padding:4px 10px;border-radius:5px;font-weight:600;background:#EDE9FE;color:#5b21b6;border:1px solid #DDD6FE;">ATCI/P</button>
-  <button class="btn bx" id="btn-prevwk" onclick="applyWeekFilter('prev')" style="font-size:11px;padding:4px 10px;border-radius:5px;background:#EDE9FE;color:#5b21b6;border:1px solid #DDD6FE;white-space:nowrap;">Prev Week</button>
-  <button class="btn bx" id="btn-currwk" onclick="applyWeekFilter('curr')" style="font-size:11px;padding:4px 10px;border-radius:5px;background:#EDE9FE;color:#5b21b6;border:1px solid #DDD6FE;white-space:nowrap;">Current Week</button>
+  <button class="ms-btn" id="btn-atcip" onclick="toggleAtcip()" style="font-size:11px;padding:4px 10px;border-radius:5px;font-weight:600;">ATCI/P</button>
+  <button class="ms-btn" id="btn-prevwk" onclick="applyWeekFilter('prev')" style="font-size:11px;padding:4px 10px;border-radius:5px;white-space:nowrap;">Prev Week</button>
+  <button class="ms-btn" id="btn-currwk" onclick="applyWeekFilter('curr')" style="font-size:11px;padding:4px 10px;border-radius:5px;white-space:nowrap;">Current Week</button>
 
   <div class="ms-wrap" id="wrap-fR">
     <button class="ms-btn" id="btn-fR" onclick="toggleMs('fR')" style="min-width:0;width:85px;">Release</button>
@@ -1424,7 +1424,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.17:23.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.17:27.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
