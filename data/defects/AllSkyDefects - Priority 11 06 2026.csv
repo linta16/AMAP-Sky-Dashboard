@@ -5,7 +5,7 @@ AMAP-68347,237633,New,10/Jun/26 7:53 PM,13/Jun/26 12:00 AM,11/Jun/26 7:43 PM,,Se
 AMAP-68346,237632,Pending Clarification – Client,10/Jun/26 7:41 PM,,11/Jun/26 8:04 PM,,Sev 3 - Major,PB,Versioning & Comparison - R1.2,,Yes,Pooja Bagal,712020:8659cea9-6b25-4228-98ac-4221694f7799
 AMAP-68345,237631,New,10/Jun/26 7:05 PM,,10/Jun/26 7:35 PM,,Sev 3 - Major,PB [N],"GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2",,Yes,Ramya Venkataraman,5bb968a4e441cd77203a9bcd
 AMAP-68344,237630,Fixed,10/Jun/26 7:02 PM,10/Jun/26 12:00 AM,10/Jun/26 9:04 PM,,Sev 2 - Critical,PB [N],"GO UI CR Slot 2 - Order mgmt. page simplified, discount & bonus check - R1.2",Bug / Code Fix,Yes,Gennaro Di Stasio,712020:1f6d4bd6-2f38-4d92-a0f3-ce1254bcf32e
-1AMAP-68343,237629,Closed,10/Jun/26 7:01 PM,,11/Jun/26 4:39 PM,,Sev 2 - Critical,PB,"GO UI CR Slot 2 - Premium position, Status machine - R1.2",,Yes,Ramya Venkataraman,5bb968a4e441cd77203a9bcd
+AMAP-68343,237629,Closed,10/Jun/26 7:01 PM,,11/Jun/26 4:39 PM,,Sev 2 - Critical,PB,"GO UI CR Slot 2 - Premium position, Status machine - R1.2",,Yes,Ramya Venkataraman,5bb968a4e441cd77203a9bcd
 AMAP-68341,237627,New,10/Jun/26 6:43 PM,,10/Jun/26 6:44 PM,,Sev 2 - Critical,,Agency Campaign Integration - R1.4,,No,Abhishek Singh,712020:29e19adf-de84-4135-98c1-67aab80c8fb8
 AMAP-68338,237624,Impact Assessment,10/Jun/26 5:39 PM,,10/Jun/26 7:11 PM,,Sev 2 - Critical,PB,Agency Campaign Integration - R1.4,,No,Joanna Zawislak-Put,639c0ef02c2bbfc5f9ddc5bb
 AMAP-68330,237616,Impact Assessment,10/Jun/26 5:02 PM,,11/Jun/26 3:57 PM,,Sev 3 - Major,PB,Agency Campaign Integration - R1.4,,No,Naga Sasank Kalapala,712020:847e224b-b5bc-45ff-8f7a-15ce92729bed
