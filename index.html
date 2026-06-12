@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Dashboard v2026.06.12.17:15</title>
+<title>SKY ATC - Dashboard v2026.06.12.17:23</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -164,7 +164,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.17:15</span></h1>
+  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.17:23</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl" style="display:none;"></span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -1424,7 +1424,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.17:15.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.17:23.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3111,11 +3111,24 @@ function qaRenderFolderTable(data){
 }
 
 function qaRenderStatusChart(data){
-  var counts={PASS:0,FAIL:0,BLOCKED:0,'DE-SCOPED':0,WIP:0};
-  data.forEach(function(d){if(counts[d.status]!==undefined)counts[d.status]++;});
-  var labels=Object.keys(counts).filter(function(k){return counts[k]>0;});
+  /* Build counts dynamically from all statuses in data */
+  var counts={};
+  var statusOrder=['PASS','FAIL','BLOCKED','DE-SCOPED','WIP'];
+  data.forEach(function(d){
+    var s=d.status||'UNEXECUTED';
+    counts[s]=(counts[s]||0)+1;
+  });
+  /* Sort by known order first, then alphabetical */
+  var allKeys=Object.keys(counts);
+  allKeys.sort(function(a,b){
+    var ia=statusOrder.indexOf(a), ib=statusOrder.indexOf(b);
+    if(ia>=0&&ib>=0)return ia-ib;
+    if(ia>=0)return -1; if(ib>=0)return 1;
+    return a.localeCompare(b);
+  });
+  var labels=allKeys.filter(function(k){return counts[k]>0;});
   var vals=labels.map(function(k){return counts[k];});
-  var colors={'PASS':'#059669','FAIL':'#dc2626','BLOCKED':'#d97706','DE-SCOPED':'#94a3b8','WIP':'#818cf8'};
+  var colors={'PASS':'#059669','FAIL':'#dc2626','BLOCKED':'#d97706','DE-SCOPED':'#94a3b8','WIP':'#818cf8','UNEXECUTED':'#cbd5e1'};
   var ctx=document.getElementById('qaStatusChart').getContext('2d');
   if(_qaStatusChart)_qaStatusChart.destroy();
   var total2=vals.reduce(function(a,b){return a+b;},0);
