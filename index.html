@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.12.14:32</title>
+<title>SKY ATC - Dashboard v2026.06.12.17:15</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -158,29 +159,45 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
   .ms-btn{min-width:70px;font-size:10px;padding:4px 18px 4px 6px;}
   .sbar{padding:10px 12px;}
 }
-/* Status tooltip */
-td:hover .jira-tip{display:block!important;}
 </style>
 </head>
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.14:32</span></h1>
+  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.17:15</span></h1>
   <div class="hdr-r">
-    <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
+    <span class="ts" id="tsLbl" style="display:none;"></span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
     <button class="btn bs" onclick="window.print()">&#128438; Print / PDF</button>
   </div>
 </div>
 
-<div class="ubar">
-  <!-- Hidden file input -->
+<div class="ubar" id="ubar-defects">
   <input type="file" id="csvFile" accept=".csv,.json" onchange="handleUpload(this)" style="display:none;"/>
-  <!-- Upload trigger button -->
-  <button class="ubtn" onclick="document.getElementById('csvFile').click()">&#128196; Upload JIRA export</button>
-  <!-- dataAsOn hidden — used only programmatically -->
-  <span id="dataAsOn" style="display:none;">Data as on 10 Jun 2026</span>
+  <button class="ubtn" onclick="document.getElementById('csvFile').click()">&#128196; Upload Defects Extract</button>
+  <span id="dataAsOn" style="display:none;"></span>
   <span id="umsg" class="umsg" style="display:none;"></span>
+  <span id="tsLbl2" style="color:rgba(255,255,255,.75);font-size:11px;margin-left:8px;"></span>
+</div>
+<div class="ubar" id="ubar-qa" style="display:none;">
+  <label style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);
+    padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+    &#9989; Upload QA Extracts
+    <input type="file" accept=".xlsx,.csv" multiple onchange="handleQaUpload(this)" style="display:none"/>
+  </label>
+  <select id="qaRelSel" onchange="qaGo()"
+    style="font-size:12px;padding:5px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.3);
+    background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">
+    <option value="">All Releases</option>
+  </select>
+  <select id="qaCycleSel" onchange="qaGo()"
+    style="font-size:12px;padding:5px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.3);
+    background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">
+    <option value="">All Cycles</option>
+  </select>
+  <span id="qaTsLbl" style="color:rgba(255,255,255,.75);font-size:11px;margin-left:8px;white-space:nowrap;"></span>
+</div>
+
 </div>
 
 
@@ -301,12 +318,90 @@ td:hover .jira-tip{display:block!important;}
 
 <!-- ══ TAB: CONFIG ══════════════════════════════════════ -->
 <div class="tab-pane" id="pane-qa">
-  <div style="padding:60px 24px;text-align:center;">
+
+
+
+
+  <!-- QA main content -->
+  <div class="main" id="qaMain" style="display:none;">
+
+    <!-- QA Sub-tabs -->
+    <div style="display:flex;gap:0;border-bottom:2px solid #DDD6FE;margin-bottom:14px;">
+      <button id="qaTab-summary" onclick="switchQaTab('summary')"
+        style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;
+        color:#4c1d95;border-bottom:2px solid #4c1d95;margin-bottom:-2px;">
+        Execution Summary
+      </button>
+      <button id="qaTab-defects" onclick="switchQaTab('defects')"
+        style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;
+        color:#94a3b8;border-bottom:2px solid transparent;margin-bottom:-2px;">
+        Defect Details
+      </button>
+    </div>
+
+    <!-- QA Sub-pane: Execution Summary -->
+    <div id="qaPane-summary">
+
+    <!-- Summary tiles -->
+    <div id="qaSb" style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;
+      padding:14px 24px;margin-bottom:14px;"></div>
+
+    <!-- By Folder table -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">EXECUTION BY FOLDER</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:#F5F3FF;">
+              <th style="padding:8px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;white-space:nowrap;">Folder</th>
+              <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Total</th>
+              <th style="padding:8px 10px;text-align:center;color:#065f46;border-bottom:1px solid #DDD6FE;">Pass</th>
+              <th style="padding:8px 10px;text-align:center;color:#dc2626;border-bottom:1px solid #DDD6FE;">Fail</th>
+              <th style="padding:8px 10px;text-align:center;color:#92400e;border-bottom:1px solid #DDD6FE;">Blocked</th>
+              <th style="padding:8px 10px;text-align:center;color:#6b7280;border-bottom:1px solid #DDD6FE;">De-scoped</th>
+              <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Exec %</th>
+              <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Pass Rate</th>
+            </tr>
+          </thead>
+          <tbody id="qaFolderTbl"></tbody>
+        </table>
+      </div>
+    </div>
+
+
+    </div><!-- end qaPane-summary -->
+
+    <!-- QA Sub-pane: Defect Details -->
+    <div id="qaPane-defects" style="display:none;">
+
+    <!-- Charts row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="card">
+        <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">BY STATUS</div>
+        <canvas id="qaStatusChart" height="180"></canvas>
+      </div>
+      <div class="card">
+        <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">BY COMPONENT</div>
+        <canvas id="qaCompChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <!-- Defect linkage -->
+    <div class="card">
+      <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">LINKED DEFECTS</div>
+      <div id="qaDefects" style="font-size:12px;color:#374151;"></div>
+    </div><!-- end defect details card -->
+    </div><!-- end qaPane-defects -->
+
+  </div><!-- end qaMain -->
+
+  <!-- Empty state -->
+  <div id="qaEmpty" style="padding:60px 24px;text-align:center;">
     <div style="font-size:48px;margin-bottom:16px;">&#9989;</div>
-    <div style="font-size:20px;font-weight:600;color:#4c1d95;margin-bottom:8px;">QA Metrics</div>
-    <div style="font-size:13px;color:#64748b;">Coming soon — placeholder for QA dashboard</div>
+    <div style="font-size:18px;font-weight:600;color:#4c1d95;margin-bottom:8px;">QA Metrics</div>
+    <div style="font-size:13px;color:#64748b;">Upload a test execution extract (xlsx/csv) to view QA metrics</div>
   </div>
-</div>
+</div></div>
 
 <div class="tab-pane" id="pane-config">
   <div style="padding:20px 24px;max-width:960px;">
@@ -623,13 +718,7 @@ function go(){
     var g=GR.indexOf(d.status)>=0,r=RE.indexOf(d.status)>=0,c=g?'gn':r?'rd':'';
     return '<tr class="dr">'+
       '<td>'+d.key+'</td>'+
-      '<td class="'+c+'" style="position:relative;cursor:default;">'+
-      getLabel(d.status)+
-      '<span style="display:none;position:absolute;left:0;top:100%;z-index:9999;'+
-      'background:#1a1a2e;color:#fff;font-size:10px;padding:3px 8px;border-radius:4px;'+
-      'white-space:nowrap;pointer-events:none;margin-top:2px;" class="jira-tip">'+
-      d.status+'</span>'+
-      '</td>'+
+      '<td class="'+c+'">'+getLabel(d.status)+'</td>'+
       '<td class="tc">'+fmtDMY(d.created)+'</td>'+
       '<td class="tc">'+fmtDMY(d.pcd)+'</td>'+
       '<td class="tc">'+sp(d.severity)+'</td>'+
@@ -1335,7 +1424,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.14:32.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.17:15.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2543,7 +2632,13 @@ function switchTab(name){
     document.getElementById('tab-'+t).classList.toggle('active', t===name);
   });
   if(name==='qa'){} /* placeholder */
+  /* Show correct ubar per tab */
+  var ud=document.getElementById('ubar-defects');
+  var uq=document.getElementById('ubar-qa');
+  if(ud) ud.style.display=name==='dashboard'?'':'none';
+  if(uq) uq.style.display=name==='qa'?'':'none';
   if(name==='config'){renderCfgMapping();renderInventory();}
+  if(name==='qa'&&QA.length>0){qaGo();}
 }
 
 /* ── Config tab functions ── */
@@ -2751,6 +2846,9 @@ window.addEventListener('DOMContentLoaded',function(){
             localStorage.setItem('skyatc_ts',_ts);
           }
           document.getElementById('tsLbl').textContent=_ts;
+          /* Also update ubar defects status */
+          var lbl2=document.getElementById('tsLbl2');
+          if(lbl2) lbl2.textContent=_ts;
         }
       }
     }
@@ -2763,7 +2861,394 @@ window.addEventListener('DOMContentLoaded',function(){
   populateMsPcd();
   populateMsUpdated();
   go();
+  /* Restore QA data if available */
+  try{
+    /* Clear old QA data format if it has no release field */
+    var savedQa=localStorage.getItem('skyatc_qa');
+    if(savedQa){
+      try{
+        var testRows=JSON.parse(savedQa);
+        if(testRows.length>0&&testRows[0].release===undefined){
+          localStorage.removeItem('skyatc_qa');
+          localStorage.removeItem('skyatc_qa_ts');
+          savedQa=null;
+        }
+      }catch(e){savedQa=null;}
+    }
+    var savedQa2=savedQa;
+    var savedQaTs=localStorage.getItem('skyatc_qa_ts');
+    if(savedQa2){
+      QA=JSON.parse(savedQa2);
+      if(QA.length>0){
+        /* Restore Release dropdown from filename-derived release field */
+        var releases=[...new Set(QA.map(function(d){return d.release||''}))].filter(Boolean).sort();
+        var relSel2=document.getElementById('qaRelSel');
+        if(relSel2){relSel2.innerHTML='<option value="">All Releases</option>';
+          releases.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;relSel2.appendChild(o);});}
+        var cycles3=[...new Set(QA.map(function(d){return d.cycle||''}))].filter(Boolean).sort();
+        var cycSel3=document.getElementById('qaCycleSel');
+        if(cycSel3){cycSel3.innerHTML='<option value="">All Cycles</option>';
+          cycles3.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cycSel3.appendChild(o);});}
+        /* Restore Cycle dropdown */
+        var cycles2=[...new Set(QA.map(function(d){return d.cycle||''}))].filter(Boolean).sort();
+        var cycSel2=document.getElementById('qaCycleSel');
+        if(cycSel2){cycSel2.innerHTML='<option value="">All Cycles</option>';
+          cycles2.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cycSel2.appendChild(o);});}
+        if(savedQaTs){var lbl=document.getElementById('qaTsLbl');if(lbl)lbl.textContent=savedQaTs;}
+        document.getElementById('qaMain').style.display='block';
+        document.getElementById('qaEmpty').style.display='none';
+      }
+    }
+  }catch(e){}
 });
+
+
+/* ═══════════════════════════════════════════
+   QA DASHBOARD
+   ═══════════════════════════════════════════ */
+var QA=[]; /* full QA dataset */
+var _qaStatusChart=null; var _qaCompChart=null;
+
+function handleQaUpload(inp){
+  if(!inp.files||!inp.files.length)return;
+  var files=Array.from(inp.files);
+  QA=[];
+  var pending=files.length;
+  var allRows=[];
+
+  function onFileDone(rows, fname){
+    allRows=allRows.concat(rows);
+    pending--;
+    if(pending===0){
+      QA=allRows;
+      qaAfterLoad(files.length+' file'+(files.length>1?'s':''));
+    }
+  }
+
+  files.forEach(function(file){
+    var name=file.name.toLowerCase();
+    /* Extract release from filename: strip common prefixes, convert R1_2→R1.2 */
+    var _fn=file.name.replace(/\.[^.]+$/,'');
+    var _rel=_fn.replace(/^(?:Test_Execution_Report|Test_Execution|Execution_Report|QA_Report|QA_Execution|Report)_?/i,'');
+    if(!_rel)_rel=_fn;
+    _rel=_rel.replace(/([Rr])(\d+)_(\d+)/g,'$1$2.$3');
+    var relFromName=_rel.replace(/_/g,' ').trim()||_fn.replace(/_/g,' ');
+    if(name.endsWith('.csv')){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        var rows=parseQaCsv(e.target.result);
+        rows.forEach(function(r){r.release=relFromName;if(!r.cycle)r.cycle=relFromName;});
+        onFileDone(rows, file.name);
+      };
+      reader.readAsText(file);
+    } else {
+      var reader=new FileReader();
+      reader.onload=function(e){
+        try{
+          var data=new Uint8Array(e.target.result);
+          var wb=XLSX.read(data,{type:'array'});
+          var ws=wb.Sheets[wb.SheetNames[0]];
+          var rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+          var parsed=rows.map(function(r){
+            return {
+              folder:(r['Folder']||'').toString(),
+              key:(r['Test Case Key']||'').toString(),
+              summary:(r['Test Case Summary']||'').toString(),
+              status:((r['Status']||'').toString()).toUpperCase(),
+              defects:(r['Linked Defects']||'').toString(),
+              component:(r['Component']||'').toString(),
+              label:(r['Label']||'').toString(),
+              release:relFromName,
+              cycle:(r['Cycle']||'').toString()
+            };
+          });
+          onFileDone(parsed, file.name);
+        }catch(err){
+          console.error('xlsx parse error:',err);
+          onFileDone([], file.name);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  });
+}
+
+function parseQaCsv(text){
+  var lines=text.split('\n');
+  var hdrs=lines[0].split('\t');
+  function col(n){return hdrs.findIndex(function(h){return h.toLowerCase().trim()===n.toLowerCase();});}
+  var iF=col('folder'),iK=col('test case key'),iS=col('status'),iD=col('linked defects'),iC=col('component'),iL=col('label'),iCy=col('cycle');
+  return lines.slice(1).filter(function(l){return l.trim();}).map(function(l){
+    var p=l.split('\t');
+    function g(i){return i>=0?(p[i]||'').trim():'';}
+    return {folder:g(iF),key:g(iK),status:g(iS).toUpperCase(),defects:g(iD),component:g(iC),label:g(iL),cycle:g(iCy)};
+  });
+}
+
+function qaAfterLoad(fname){
+  /* Populate Release dropdown from filenames */
+  var releases=[...new Set(QA.map(function(d){return d.release||''}))].filter(Boolean).sort();
+  var relSel=document.getElementById('qaRelSel');
+  relSel.innerHTML='<option value="">All Releases</option>';
+  releases.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;relSel.appendChild(o);});
+  /* Populate Cycle dropdown */
+  var cycles=[...new Set(QA.map(function(d){return d.cycle||''}))].filter(Boolean).sort();
+  var cycSel=document.getElementById('qaCycleSel');
+  if(cycSel){cycSel.innerHTML='<option value="">All Cycles</option>';
+    cycles.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cycSel.appendChild(o);});}
+  /* Populate Cycle dropdown from sheet Cycle column */
+  var cycles=[...new Set(QA.map(function(d){return d.cycle||''}))].filter(Boolean).sort();
+  var cycSel=document.getElementById('qaCycleSel');
+  if(cycSel){
+    cycSel.innerHTML='<option value="">All Cycles</option>';
+    cycles.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cycSel.appendChild(o);});
+  }
+  /* timestamp */
+  var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var d=new Date(Date.now()+5.5*3600000);
+  document.getElementById('qaTsLbl').textContent='Last updated: '+
+    String(d.getUTCDate()).padStart(2,'0')+'-'+mo[d.getUTCMonth()]+'-'+String(d.getUTCFullYear()).slice(2)+
+    ' '+String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+
+    ' · '+QA.length+' records ('+fname+')';
+  document.getElementById('qaMain').style.display='block';
+  document.getElementById('qaEmpty').style.display='none';
+  /* Persist QA data so tab switches don't lose it */
+  try{localStorage.setItem('skyatc_qa',JSON.stringify(QA));
+  localStorage.setItem('skyatc_qa_ts',document.getElementById('qaTsLbl').textContent);}catch(e){}
+  qaGo();
+}
+
+function switchQaTab(name){
+  ['summary','defects'].forEach(function(t){
+    var pane=document.getElementById('qaPane-'+t);
+    var btn=document.getElementById('qaTab-'+t);
+    if(pane) pane.style.display=t===name?'block':'none';
+    if(btn){
+      btn.style.color=t===name?'#4c1d95':'#94a3b8';
+      btn.style.borderBottomColor=t===name?'#4c1d95':'transparent';
+    }
+  });
+}
+
+function qaGo(){
+  var rel=(document.getElementById('qaRelSel')||{}).value||'';
+  var cyc=(document.getElementById('qaCycleSel')||{}).value||'';
+  var data=QA.filter(function(d){
+    if(rel&&(d.release||'')!==rel)return false;
+    if(cyc&&(d.cycle||'')!==cyc)return false;
+    return true;
+  });
+  qaRenderSummary(data);
+  qaRenderFolderTable(data);
+  qaRenderStatusChart(data);
+  qaRenderCompChart(data);
+  qaRenderDefects(data);
+}
+
+function qaRenderSummary(data){
+  var total=data.length;
+  var pass=data.filter(function(d){return d.status==='PASS';}).length;
+  var fail=data.filter(function(d){return d.status==='FAIL';}).length;
+  var blocked=data.filter(function(d){return d.status==='BLOCKED';}).length;
+  var descoped=data.filter(function(d){return d.status==='DE-SCOPED';}).length;
+  var wip=data.filter(function(d){return d.status==='WIP';}).length;
+  var executed=pass+fail+blocked;
+  var unexecuted=total-executed-descoped-wip;
+  var execPct=total>0?Math.round(executed/total*100):0;
+  var passPct=executed>0?Math.round(pass/executed*100):0;
+  var ts='padding:0 10px;text-align:center;border-right:1px solid #DDD6FE;';
+  var tl='padding:0 10px;text-align:center;';
+  document.getElementById('qaSb').innerHTML=
+    '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:#4c1d95;margin-bottom:12px;text-align:center;">QA Summary</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:0;">'+
+      '<div style="'+ts+'"><div style="font-size:12px;color:#5b21b6;text-transform:uppercase;margin-bottom:3px;">Total TCs</div><div style="font-size:20px;font-weight:700;color:#1e3a5f;">'+total+'</div></div>'+
+      '<div style="'+ts+'"><div style="font-size:12px;color:#065f46;text-transform:uppercase;margin-bottom:3px;">Pass</div><div style="font-size:20px;font-weight:700;color:#065f46;">'+pass+'</div></div>'+
+      '<div style="'+ts+'"><div style="font-size:12px;color:#dc2626;text-transform:uppercase;margin-bottom:3px;">Fail</div><div style="font-size:20px;font-weight:700;color:#dc2626;">'+fail+'</div></div>'+
+      '<div style="'+ts+'"><div style="font-size:12px;color:#92400e;text-transform:uppercase;margin-bottom:3px;">Blocked</div><div style="font-size:20px;font-weight:700;color:#b45309;">'+blocked+'</div></div>'+
+      '<div style="'+ts+'"><div style="font-size:12px;color:#6b7280;text-transform:uppercase;margin-bottom:3px;">De-Scoped</div><div style="font-size:20px;font-weight:700;color:#6b7280;">'+descoped+'</div></div>'+
+      '<div style="'+ts+'"><div style="font-size:12px;color:#818cf8;text-transform:uppercase;margin-bottom:3px;">WIP</div><div style="font-size:20px;font-weight:700;color:#818cf8;">'+wip+'</div></div>'+
+      '<div style="'+ts+'"><div style="font-size:12px;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Unexecuted</div><div style="font-size:20px;font-weight:700;color:#94a3b8;">'+unexecuted+'</div></div>'+
+      '<div style="'+ts+'"><div style="font-size:12px;color:#4c1d95;text-transform:uppercase;margin-bottom:3px;">Execution %</div>'+
+        '<div style="font-size:20px;font-weight:700;color:#4c1d95;">'+execPct+'%</div>'+
+        '<div style="font-size:10px;color:#374151;">'+unexecuted+' not run</div></div>'+
+      '<div style="'+tl+'"><div style="font-size:12px;color:#065f46;text-transform:uppercase;margin-bottom:3px;">Pass Rate</div>'+
+        '<div style="font-size:20px;font-weight:700;color:#065f46;">'+passPct+'%</div>'+
+        '<div style="font-size:10px;color:#374151;">of executed</div></div>'+
+    '</div>';
+}
+
+
+function qaRenderFolderTable(data){
+  var folders={};
+  data.forEach(function(d){
+    if(!folders[d.folder])folders[d.folder]={total:0,pass:0,fail:0,blocked:0,descoped:0};
+    folders[d.folder].total++;
+    if(d.status==='PASS')folders[d.folder].pass++;
+    else if(d.status==='FAIL')folders[d.folder].fail++;
+    else if(d.status==='BLOCKED')folders[d.folder].blocked++;
+    else if(d.status==='DE-SCOPED')folders[d.folder].descoped++;
+  });
+  var html='';
+  Object.keys(folders).sort().forEach(function(f){
+    var r=folders[f];
+    var exec=r.pass+r.fail+r.blocked;
+    var execPct=r.total>0?Math.round(exec/r.total*100):0;
+    var passPct=exec>0?Math.round(r.pass/exec*100):0;
+    var passColor=passPct>=80?'#065f46':passPct>=50?'#b45309':'#dc2626';
+    var execColor=execPct>=80?'#065f46':execPct>=50?'#b45309':'#dc2626';
+    html+='<tr style="border-bottom:1px solid #f1f5f9;">'+
+      '<td style="padding:7px 10px;font-size:11px;color:#1a1a2e;">'+f+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;font-weight:600;font-size:12px;">'+r.total+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;color:#065f46;font-weight:600;font-size:12px;">'+r.pass+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;color:#dc2626;font-weight:600;font-size:12px;">'+r.fail+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;color:#b45309;font-weight:600;font-size:12px;">'+r.blocked+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;color:#6b7280;font-size:12px;">'+r.descoped+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;font-weight:700;font-size:12px;color:'+execColor+';">'+execPct+'%</td>'+
+      '<td style="padding:7px 10px;text-align:center;font-weight:700;font-size:12px;color:'+passColor+';">'+passPct+'%</td>'+
+    '</tr>';
+  });
+  document.getElementById('qaFolderTbl').innerHTML=html;
+}
+
+function qaRenderStatusChart(data){
+  var counts={PASS:0,FAIL:0,BLOCKED:0,'DE-SCOPED':0,WIP:0};
+  data.forEach(function(d){if(counts[d.status]!==undefined)counts[d.status]++;});
+  var labels=Object.keys(counts).filter(function(k){return counts[k]>0;});
+  var vals=labels.map(function(k){return counts[k];});
+  var colors={'PASS':'#059669','FAIL':'#dc2626','BLOCKED':'#d97706','DE-SCOPED':'#94a3b8','WIP':'#818cf8'};
+  var ctx=document.getElementById('qaStatusChart').getContext('2d');
+  if(_qaStatusChart)_qaStatusChart.destroy();
+  var total2=vals.reduce(function(a,b){return a+b;},0);
+  var centrePlugin={id:'centreText',beforeDraw:function(ch){
+    if(ch.canvas.id!=='qaStatusChart')return;
+    var c2=ch.ctx,a=ch.chartArea;
+    var cx=a?(a.left+a.right)/2:ch.width/2,cy=a?(a.top+a.bottom)/2:ch.height/2;
+    c2.save();c2.font='bold 16px sans-serif';c2.fillStyle='#1a1a2e';
+    c2.textAlign='center';c2.textBaseline='middle';
+    c2.fillText(total2,cx,cy);c2.restore();
+  }};
+  var segLabelPlugin={id:'segLabels',afterDatasetsDraw:function(ch){
+    if(ch.canvas.id!=='qaStatusChart')return;
+    var c2=ch.ctx,meta=ch.getDatasetMeta(0);
+    meta.data.forEach(function(arc,i){
+      var v=ch.data.datasets[0].data[i];
+      if(!v)return;
+      var angle=(arc.startAngle+arc.endAngle)/2;
+      var r=(arc.outerRadius+arc.innerRadius)/2;
+      var x=arc.x+r*Math.cos(angle);
+      var y=arc.y+r*Math.sin(angle);
+      c2.save();c2.font='bold 11px sans-serif';c2.fillStyle='#fff';
+      c2.textAlign='center';c2.textBaseline='middle';
+      c2.fillText(v,x,y);c2.restore();
+    });
+  }};
+  _qaStatusChart=new Chart(ctx,{type:'doughnut',
+    data:{labels:labels,datasets:[{data:vals,backgroundColor:labels.map(function(l){return colors[l]||'#ccc';}),borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,cutout:'55%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}},
+    plugins:[centrePlugin,segLabelPlugin]});
+}
+
+function qaRenderCompChart(data){
+  var comps={};
+  data.forEach(function(d){comps[d.component]=(comps[d.component]||0)+1;});
+  var sorted=Object.entries(comps).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+  var ctx=document.getElementById('qaCompChart').getContext('2d');
+  if(_qaCompChart)_qaCompChart.destroy();
+  var barLabelPlugin={id:'barLabels',afterDatasetsDraw:function(ch){
+    if(ch.canvas.id!=='qaCompChart')return;
+    var c2=ch.ctx,ds=ch.data.datasets[0];
+    ch.getDatasetMeta(0).data.forEach(function(bar,i){
+      c2.save();c2.font='bold 10px sans-serif';c2.fillStyle='#4c1d95';
+      c2.textAlign='center';c2.textBaseline='bottom';
+      c2.fillText(ds.data[i],bar.x,bar.y-2);c2.restore();
+    });
+  }};
+  _qaCompChart=new Chart(ctx,{type:'bar',
+    data:{labels:sorted.map(function(e){return e[0];}),datasets:[{label:'Test Cases',data:sorted.map(function(e){return e[1];}),backgroundColor:'#818cf8',borderRadius:4}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{font:{size:10}}}}},
+    plugins:[barLabelPlugin]});
+}
+
+function qaRenderDefects(data){
+  var el=document.getElementById('qaDefects');
+  /* Count defects per unique defect key + how many TCs link to each */
+  var defectMap={}; /* defectKey → {total, fail, blocked, pass} */
+  var tcWithDefects=0; var tcWithout=0;
+  data.forEach(function(d){
+    if(d.defects&&d.defects.trim()){
+      tcWithDefects++;
+      d.defects.split(',').forEach(function(def){
+        var k=def.trim(); if(!k)return;
+        if(!defectMap[k])defectMap[k]={total:0,fail:0,blocked:0,pass:0};
+        defectMap[k].total++;
+        var s=d.status;
+        if(s==='FAIL')defectMap[k].fail++;
+        else if(s==='BLOCKED')defectMap[k].blocked++;
+        else if(s==='PASS')defectMap[k].pass++;
+      });
+    } else { tcWithout++; }
+  });
+  var defectKeys=Object.keys(defectMap);
+  if(!defectKeys.length){
+    el.innerHTML='<span style="color:#94a3b8;">No linked defects in this dataset</span>';
+    return;
+  }
+  /* Summary stats */
+  var totalLinks=defectKeys.reduce(function(s,k){return s+defectMap[k].total;},0);
+  var failLinks=defectKeys.reduce(function(s,k){return s+defectMap[k].fail;},0);
+  /* Sort by total TCs linked descending */
+  defectKeys.sort(function(a,b){return defectMap[b].total-defectMap[a].total;});
+  var html=
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">'+
+      '<div style="background:#FEF2F2;border-radius:8px;padding:10px 14px;text-align:center;">'+
+        '<div style="font-size:10px;color:#991b1b;text-transform:uppercase;margin-bottom:4px;">Unique Defects</div>'+
+        '<div style="font-size:22px;font-weight:700;color:#dc2626;">'+defectKeys.length+'</div>'+
+      '</div>'+
+      '<div style="background:#FFF7ED;border-radius:8px;padding:10px 14px;text-align:center;">'+
+        '<div style="font-size:10px;color:#92400e;text-transform:uppercase;margin-bottom:4px;">TCs With Defects</div>'+
+        '<div style="font-size:22px;font-weight:700;color:#b45309;">'+tcWithDefects+'</div>'+
+        '<div style="font-size:10px;color:#374151;">'+tcWithout+' without</div>'+
+      '</div>'+
+      '<div style="background:#FEF2F2;border-radius:8px;padding:10px 14px;text-align:center;">'+
+        '<div style="font-size:10px;color:#991b1b;text-transform:uppercase;margin-bottom:4px;">Fail Links</div>'+
+        '<div style="font-size:22px;font-weight:700;color:#dc2626;">'+failLinks+'</div>'+
+        '<div style="font-size:10px;color:#374151;">of '+totalLinks+' total links</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="overflow-x:auto;">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px;">'+
+      '<thead><tr style="background:#F5F3FF;">'+
+        '<th style="padding:7px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Defect Key</th>'+
+        '<th style="padding:7px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">TCs Linked</th>'+
+        '<th style="padding:7px 10px;text-align:center;color:#dc2626;border-bottom:1px solid #DDD6FE;">Fail</th>'+
+        '<th style="padding:7px 10px;text-align:center;color:#b45309;border-bottom:1px solid #DDD6FE;">Blocked</th>'+
+        '<th style="padding:7px 10px;text-align:center;color:#065f46;border-bottom:1px solid #DDD6FE;">Pass</th>'+
+        '<th style="padding:7px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Impact</th>'+
+      '</tr></thead><tbody>';
+  defectKeys.forEach(function(k){
+    var r=defectMap[k];
+    var impactPct=r.total>0?Math.round((r.fail+r.blocked)/r.total*100):0;
+    var barColor=impactPct>=75?'#dc2626':impactPct>=40?'#d97706':'#059669';
+    html+='<tr style="border-bottom:1px solid #f1f5f9;">'+
+      '<td style="padding:7px 10px;font-weight:600;color:#4c1d95;">'+k+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;font-weight:600;">'+r.total+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;color:#dc2626;font-weight:600;">'+r.fail+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;color:#b45309;font-weight:600;">'+r.blocked+'</td>'+
+      '<td style="padding:7px 10px;text-align:center;color:#065f46;font-weight:600;">'+r.pass+'</td>'+
+      '<td style="padding:7px 10px;min-width:120px;">'+
+        '<div style="display:flex;align-items:center;gap:6px;">'+
+          '<div style="flex:1;background:#e2e8f0;border-radius:4px;height:6px;">'+
+            '<div style="width:'+impactPct+'%;background:'+barColor+';height:6px;border-radius:4px;"></div>'+
+          '</div>'+
+          '<span style="font-size:10px;color:'+barColor+';font-weight:600;white-space:nowrap;">'+impactPct+'%</span>'+
+        '</div>'+
+      '</td>'+
+    '</tr>';
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+
 </script>
 </body>
 </html>
