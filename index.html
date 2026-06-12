@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Dashboard v2026.06.12.17:27</title>
+<title>SKY ATC - Dashboard v2026.06.12.17:52</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -164,7 +164,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.17:27</span></h1>
+  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.17:52</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl" style="display:none;"></span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -353,6 +353,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
           <thead>
             <tr style="background:#F5F3FF;">
+              <th style="padding:8px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;white-space:nowrap;">Release</th>
               <th style="padding:8px 10px;text-align:left;color:#4c1d95;border-bottom:1px solid #DDD6FE;white-space:nowrap;">Folder</th>
               <th style="padding:8px 10px;text-align:center;color:#4c1d95;border-bottom:1px solid #DDD6FE;">Total</th>
               <th style="padding:8px 10px;text-align:center;color:#065f46;border-bottom:1px solid #DDD6FE;">Pass</th>
@@ -378,7 +379,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="card">
         <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">BY STATUS</div>
-        <canvas id="qaStatusChart" height="180"></canvas>
+        <canvas id="qaStatusChart" height="90"></canvas>
       </div>
       <div class="card">
         <div class="ch" style="font-size:11px;font-weight:600;color:#4c1d95;margin-bottom:10px;">BY COMPONENT</div>
@@ -1424,7 +1425,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.17:27.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.17:52.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2864,7 +2865,18 @@ window.addEventListener('DOMContentLoaded',function(){
   /* Restore QA data if available */
   try{
     /* Clear old QA data format if it has no release field */
+    /* Only clear if data was saved with old format (no release field) */
     var savedQa=localStorage.getItem('skyatc_qa');
+    if(savedQa){
+      try{
+        var _test=JSON.parse(savedQa);
+        if(_test.length>0&&(_test[0].release===undefined||_test[0].release===null)){
+          localStorage.removeItem('skyatc_qa');
+          localStorage.removeItem('skyatc_qa_ts');
+          savedQa=null;
+        }
+      }catch(e){savedQa=null;}
+    }
     if(savedQa){
       try{
         var testRows=JSON.parse(savedQa);
@@ -2929,9 +2941,21 @@ function handleQaUpload(inp){
     var name=file.name.toLowerCase();
     /* Extract release from filename: strip common prefixes, convert R1_2→R1.2 */
     var _fn=file.name.replace(/\.[^.]+$/,'');
-    var _rel=_fn.replace(/^(?:Test_Execution_Report|Test_Execution|Execution_Report|QA_Report|QA_Execution|Report)_?/i,'');
-    if(!_rel)_rel=_fn;
+    /* Strip longer prefixes first, then shorter */
+    var _prefixes=[
+      /^Test_Execution_Report_/i,/^Test_Execution_Report/i,
+      /^Test_Execution_/i,/^Test_Execution/i,
+      /^Execution_Report_/i,/^QA_Report_/i,/^QA_Execution_/i,
+      /^Report_/i,/^Execution_/i
+    ];
+    var _rel=_fn;
+    for(var _pi=0;_pi<_prefixes.length;_pi++){
+      var _stripped=_fn.replace(_prefixes[_pi],'');
+      if(_stripped&&_stripped!==_fn){_rel=_stripped;break;}
+    }
+    /* Convert R1_2 style → R1.2 */
     _rel=_rel.replace(/([Rr])(\d+)_(\d+)/g,'$1$2.$3');
+    /* Replace underscores with spaces and trim */
     var relFromName=_rel.replace(/_/g,' ').trim()||_fn.replace(/_/g,' ');
     if(name.endsWith('.csv')){
       var reader=new FileReader();
@@ -3081,7 +3105,7 @@ function qaRenderSummary(data){
 function qaRenderFolderTable(data){
   var folders={};
   data.forEach(function(d){
-    if(!folders[d.folder])folders[d.folder]={total:0,pass:0,fail:0,blocked:0,descoped:0};
+    if(!folders[d.folder])folders[d.folder]={total:0,pass:0,fail:0,blocked:0,descoped:0,release:d.release||''};
     folders[d.folder].total++;
     if(d.status==='PASS')folders[d.folder].pass++;
     else if(d.status==='FAIL')folders[d.folder].fail++;
@@ -3097,6 +3121,7 @@ function qaRenderFolderTable(data){
     var passColor=passPct>=80?'#065f46':passPct>=50?'#b45309':'#dc2626';
     var execColor=execPct>=80?'#065f46':execPct>=50?'#b45309':'#dc2626';
     html+='<tr style="border-bottom:1px solid #f1f5f9;">'+
+      '<td style="padding:7px 10px;font-size:11px;color:#5b21b6;font-weight:600;white-space:nowrap;">'+( folders[f].release||'' )+'</td>'+
       '<td style="padding:7px 10px;font-size:11px;color:#1a1a2e;">'+f+'</td>'+
       '<td style="padding:7px 10px;text-align:center;font-weight:600;font-size:12px;">'+r.total+'</td>'+
       '<td style="padding:7px 10px;text-align:center;color:#065f46;font-weight:600;font-size:12px;">'+r.pass+'</td>'+
@@ -3162,25 +3187,57 @@ function qaRenderStatusChart(data){
 }
 
 function qaRenderCompChart(data){
+  /* Group by component, breakdown by status */
   var comps={};
-  data.forEach(function(d){comps[d.component]=(comps[d.component]||0)+1;});
-  var sorted=Object.entries(comps).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+  data.forEach(function(d){
+    var c=d.component||'Unknown';
+    if(!comps[c])comps[c]={total:0,pass:0,fail:0,blocked:0,other:0};
+    comps[c].total++;
+    if(d.status==='PASS')comps[c].pass++;
+    else if(d.status==='FAIL')comps[c].fail++;
+    else if(d.status==='BLOCKED')comps[c].blocked++;
+    else comps[c].other++;
+  });
+  var sorted=Object.entries(comps).sort(function(a,b){return b[1].total-a[1].total;}).slice(0,8);
+  var labels=sorted.map(function(e){return e[0];});
   var ctx=document.getElementById('qaCompChart').getContext('2d');
   if(_qaCompChart)_qaCompChart.destroy();
   var barLabelPlugin={id:'barLabels',afterDatasetsDraw:function(ch){
     if(ch.canvas.id!=='qaCompChart')return;
-    var c2=ch.ctx,ds=ch.data.datasets[0];
-    ch.getDatasetMeta(0).data.forEach(function(bar,i){
+    var c2=ch.ctx;
+    /* Draw total above each bar stack */
+    var nDatasets=ch.data.datasets.length;
+    var lastDs=ch.getDatasetMeta(nDatasets-1);
+    var firstDs=ch.getDatasetMeta(0);
+    labels.forEach(function(_,i){
+      var topBar=lastDs.data[i];
+      var bottomBar=firstDs.data[i];
+      var total=sorted[i][1].total;
       c2.save();c2.font='bold 10px sans-serif';c2.fillStyle='#4c1d95';
       c2.textAlign='center';c2.textBaseline='bottom';
-      c2.fillText(ds.data[i],bar.x,bar.y-2);c2.restore();
+      c2.fillText(total,topBar.x,topBar.y-2);c2.restore();
     });
   }};
   _qaCompChart=new Chart(ctx,{type:'bar',
-    data:{labels:sorted.map(function(e){return e[0];}),datasets:[{label:'Test Cases',data:sorted.map(function(e){return e[1];}),backgroundColor:'#818cf8',borderRadius:4}]},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{font:{size:10}}}}},
+    data:{
+      labels:labels,
+      datasets:[
+        {label:'Pass',data:sorted.map(function(e){return e[1].pass;}),backgroundColor:'#059669',borderRadius:0},
+        {label:'Fail',data:sorted.map(function(e){return e[1].fail;}),backgroundColor:'#dc2626',borderRadius:0},
+        {label:'Blocked',data:sorted.map(function(e){return e[1].blocked;}),backgroundColor:'#d97706',borderRadius:0},
+        {label:'Other',data:sorted.map(function(e){return e[1].other;}),backgroundColor:'#94a3b8',borderRadius:4}
+      ]
+    },
+    options:{responsive:true,
+      plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:12}}},
+      scales:{
+        x:{stacked:true,ticks:{font:{size:10}}},
+        y:{stacked:true,beginAtZero:true,ticks:{font:{size:10}}}
+      }
+    },
     plugins:[barLabelPlugin]});
 }
+
 
 function qaRenderDefects(data){
   var el=document.getElementById('qaDefects');
