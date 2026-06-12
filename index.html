@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.12.10:05</title>
+<title>SKY ATC - Defect Dashboard v2026.06.12.14:32</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -158,12 +158,14 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
   .ms-btn{min-width:70px;font-size:10px;padding:4px 18px 4px 6px;}
   .sbar{padding:10px 12px;}
 }
+/* Status tooltip */
+td:hover .jira-tip{display:block!important;}
 </style>
 </head>
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.10:05</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.14:32</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -621,7 +623,13 @@ function go(){
     var g=GR.indexOf(d.status)>=0,r=RE.indexOf(d.status)>=0,c=g?'gn':r?'rd':'';
     return '<tr class="dr">'+
       '<td>'+d.key+'</td>'+
-      '<td class="'+c+'">'+getLabel(d.status)+'</td>'+
+      '<td class="'+c+'" style="position:relative;cursor:default;">'+
+      getLabel(d.status)+
+      '<span style="display:none;position:absolute;left:0;top:100%;z-index:9999;'+
+      'background:#1a1a2e;color:#fff;font-size:10px;padding:3px 8px;border-radius:4px;'+
+      'white-space:nowrap;pointer-events:none;margin-top:2px;" class="jira-tip">'+
+      d.status+'</span>'+
+      '</td>'+
       '<td class="tc">'+fmtDMY(d.created)+'</td>'+
       '<td class="tc">'+fmtDMY(d.pcd)+'</td>'+
       '<td class="tc">'+sp(d.severity)+'</td>'+
@@ -1327,7 +1335,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.10:05.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.14:32.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
