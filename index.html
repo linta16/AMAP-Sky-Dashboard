@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Dashboard v2026.06.12.18:49</title>
+<title>SKY ATC - Dashboard v2026.06.12.19:44</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -164,27 +164,31 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.18:49</span></h1>
+  <h1>&#128202; SKY ATC - Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.19:44</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl" style="display:none;"></span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
     <button class="btn bs" onclick="window.print()">&#128438; Print / PDF</button>
+
   </div>
 </div>
 
 <div class="ubar" id="ubar-defects">
-  <input type="file" id="csvFile" accept=".csv,.json" onchange="handleUpload(this)" style="display:none;"/>
-  <button class="ubtn" onclick="document.getElementById('csvFile').click()">&#128196; Upload Defects Extract</button>
+  <span id="localUploadDef">
+    <input type="file" id="csvFile" accept=".csv,.json" onchange="handleUpload(this)" style="display:none;"/>
+    <button class="ubtn" onclick="document.getElementById('csvFile').click()">&#128196; Upload Defects Extract</button>
+  </span>
   <span id="dataAsOn" style="display:none;"></span>
   <span id="umsg" class="umsg" style="display:none;"></span>
   <span id="tsLbl2" style="color:rgba(255,255,255,.75);font-size:11px;margin-left:8px;"></span>
 </div>
 <div class="ubar" id="ubar-qa" style="display:none;">
-  <label style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);
-    padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
-    &#9989; Upload QA Extracts
-    <input type="file" accept=".xlsx,.csv" multiple onchange="handleQaUpload(this)" style="display:none"/>
-  </label>
+  <span id="localUploadQA">
+    <label style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+      &#9989; Upload QA Extracts
+      <input type="file" accept=".xlsx,.csv" multiple onchange="handleQaUpload(this)" style="display:none"/>
+    </label>
+  </span>
   <select id="qaRelSel" onchange="qaGo()"
     style="font-size:12px;padding:5px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.3);
     background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">
@@ -218,7 +222,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
   <div style="padding:60px 24px;text-align:center;">
     <div style="font-size:48px;margin-bottom:16px;">&#128203;</div>
     <div style="font-size:20px;font-weight:600;color:#4c1d95;margin-bottom:8px;">Release Summary</div>
-    <div style="font-size:13px;color:#64748b;">Coming soon — cross-release metrics and trend view</div>
+    <div style="font-size:13px;color:#64748b;">Coming soon — cross-release highlight view</div>
   </div>
 </div>
 
@@ -330,6 +334,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 </div><!-- end pane-dashboard -->
 
 <!-- ══ TAB: CONFIG ══════════════════════════════════════ -->
+
 <div class="tab-pane" id="pane-integration">
 
   <!-- Integration sub-tabs -->
@@ -1230,7 +1235,7 @@ function handleUpload(inp){
   var f=inp.files[0]; if(!f)return;
   var r=new FileReader();
   var el=document.getElementById('umsg');
-  el.textContent='Reading file\u2026';el.className='umsg';el.style.display='inline-block';
+  if(el){el.textContent='Reading file\u2026';el.className='umsg';el.style.display='inline-block';}
   r.onload=function(e){
     try{
       var records;
@@ -1261,7 +1266,7 @@ function handleUpload(inp){
       var _min=String(_ist2.getUTCMinutes()).padStart(2,'0');
       var _fmtDate=_dd+'-'+_mm+'-'+_yy;
       var _fmtTime=_hh+':'+_min;
-      document.getElementById('tsLbl').textContent='Last Updated: '+_fmtDate+' '+_fmtTime+' \u00b7 '+records.length+' records';
+      var _tl=document.getElementById('tsLbl');if(_tl)_tl.textContent='Last Updated: '+_fmtDate+' '+_fmtTime+' \u00b7 '+records.length+' records';
       /* dataAsOn hidden — not needed */
       populateMsRelease();
       populateMsStatus();
@@ -1274,14 +1279,17 @@ function handleUpload(inp){
       });
       buildArrays(); /* Rebuild EX/GR/RE from updated LABEL_MAP */
       rst();
-      /* Persist to localStorage so data survives page refresh */
+      /* Update Release Summary if active */
+  var _activeTab=document.querySelector('.tab-btn.active');
+  if(_activeTab&&_activeTab.id==='tab-release')renderReleaseSummary();
+  /* Persist to localStorage so data survives page refresh */
       try{
         localStorage.setItem('skyatc_data', JSON.stringify(records));
-        localStorage.setItem('skyatc_ts', document.getElementById('tsLbl').textContent);
+        var _tl2=document.getElementById('tsLbl');localStorage.setItem('skyatc_ts',_tl2?_tl2.textContent:'');
         localStorage.setItem('skyatc_count', String(records.length));
       }catch(e){console.warn('localStorage full');}
-      el.textContent='\u2713 '+records.length+' records loaded'; el.className='umsg uok';
-    }catch(err){el.textContent='\u2717 '+err.message;el.className='umsg uerr';}
+      if(el){el.textContent='\u2713 '+records.length+' records loaded';el.className='umsg uok';}
+    }catch(err){if(el){el.textContent='\u2717 '+err.message;el.className='umsg uerr';}else{console.error(err);}}
   };
   r.readAsText(f,'UTF-8');
 }
@@ -1472,7 +1480,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.18:49.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.19:44.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2681,8 +2689,8 @@ function switchSubTab(pid, sub){
     if(p)p.style.display=t===sub?'block':'none';
     if(b){b.style.color=t===sub?'#4c1d95':'#94a3b8';b.style.borderBottomColor=t===sub?'#4c1d95':'transparent';}
   });
-  /* Render charts when switching to exec or defects */
-  if(sub==='exec'||sub==='defects') qaRenderForType(pid);
+  /* Always re-render on sub-tab switch so charts paint correctly */
+  if(QA.length>0) qaRenderForType(pid);
 }
 
 function switchTab(name){
@@ -2697,6 +2705,7 @@ function switchTab(name){
   var uq=document.getElementById('ubar-qa');
   if(ud)ud.style.display=name==='dashboard'?'':'none';
   if(uq)uq.style.display=(name==='integration'||name==='uat')?'':'none';
+  if(name==='release')renderReleaseSummary();
   if(name==='config'){renderCfgMapping();renderInventory();}
   if(name==='integration'&&QA.length>0){updateReleasesForType('integration');qaRenderForType('integration');}
   if(name==='uat'&&QA.length>0){updateReleasesForType('uat');qaRenderForType('uat');}
@@ -2778,6 +2787,21 @@ function applyAllConfig(){
   populateMsPcd();
   populateMsUpdated();
   go();
+  /* Hide upload buttons on SharePoint */
+  var _isSP=location.hostname.indexOf('sharepoint.com')>=0||location.hostname.indexOf('ts.accenture.com')>=0;
+  if(_isSP){
+    var _du=document.getElementById('localUploadDef');if(_du)_du.style.display='none';
+    var _qu=document.getElementById('localUploadQA');if(_qu)_qu.style.display='none';
+    spAutoLoad();
+  }
+  /* Render baked QA if present */
+  if(QA.length>0){
+    updateReleasesForType('integration');
+    qaGo();
+    if(typeof _bakedQAts!=='undefined'&&_bakedQAts){
+      var _ql=document.getElementById('qaTsLbl');if(_ql)_ql.textContent=_bakedQAts;
+    }
+  }
   renderInventory();
   var msg=document.getElementById('cfgAppliedMsg');
   if(msg){msg.style.display='inline';setTimeout(function(){msg.style.display='none';},2000);}
@@ -2938,16 +2962,7 @@ window.addEventListener('DOMContentLoaded',function(){
         }
       }catch(e){savedQa=null;}
     }
-    if(savedQa){
-      try{
-        var testRows=JSON.parse(savedQa);
-        if(testRows.length>0&&testRows[0].release===undefined){
-          localStorage.removeItem('skyatc_qa');
-          localStorage.removeItem('skyatc_qa_ts');
-          savedQa=null;
-        }
-      }catch(e){savedQa=null;}
-    }
+
     var savedQa2=savedQa;
     var savedQaTs=localStorage.getItem('skyatc_qa_ts');
     if(savedQa2){
@@ -2968,8 +2983,9 @@ window.addEventListener('DOMContentLoaded',function(){
         if(cycSel2){cycSel2.innerHTML='<option value="">All Cycles</option>';
           cycles2.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cycSel2.appendChild(o);});}
         if(savedQaTs){var lbl=document.getElementById('qaTsLbl');if(lbl)lbl.textContent=savedQaTs;}
-        document.getElementById('qaMain').style.display='block';
-        document.getElementById('qaEmpty').style.display='none';
+        /* Render into active QA tab */
+        updateReleasesForType('integration');
+        qaGo();
       }
     }
   }catch(e){}
@@ -2980,6 +2996,8 @@ window.addEventListener('DOMContentLoaded',function(){
    QA DASHBOARD
    ═══════════════════════════════════════════ */
 var QA=[]; /* full QA dataset */
+if(typeof _bakedQA!=='undefined'&&_bakedQA.length>0)QA=_bakedQA;
+
 var _qaStatusChart=null; var _qaCompChart=null;
 
 function handleQaUpload(inp){
@@ -3055,7 +3073,7 @@ function handleQaUpload(inp){
           });
           parsed.forEach(function(row){
             row.testType=_testType;
-            if(_isUAT){var m=(row.folder||'').match(/^([\d\.]+)\s*-/);if(m)row.release=m[1].trim();}
+            if(_isUAT){var m=(row.folder||'').match(/^([\d\.]+)\s*-/);if(m)row.release='R'+m[1].trim();}
           });
           onFileDone(parsed, file.name);
         }catch(err){
@@ -3081,41 +3099,270 @@ function parseQaCsv(text){
 }
 
 function qaAfterLoad(fname){
-  /* Populate Release dropdown from filenames */
-  /* Populate Release dropdown — integration releases from filename, UAT from folder */
+  /* Populate Release dropdown */
   var allReleases=[...new Set(QA.map(function(d){return d.release||''}))].filter(Boolean).sort();
   var relSel=document.getElementById('qaRelSel');
-  relSel.innerHTML='<option value="">All Releases</option>';
-  allReleases.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;relSel.appendChild(o);});
+  if(relSel){
+    relSel.innerHTML='<option value="">All Releases</option>';
+    allReleases.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;relSel.appendChild(o);});
+  }
   /* Populate Cycle dropdown */
-  var cycles=[...new Set(QA.map(function(d){return d.cycle||''}))].filter(Boolean).sort();
-  var cycSel=document.getElementById('qaCycleSel');
-  if(cycSel){cycSel.innerHTML='<option value="">All Cycles</option>';
-    cycles.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cycSel.appendChild(o);});}
-  /* Populate Cycle dropdown from sheet Cycle column */
   var cycles=[...new Set(QA.map(function(d){return d.cycle||''}))].filter(Boolean).sort();
   var cycSel=document.getElementById('qaCycleSel');
   if(cycSel){
     cycSel.innerHTML='<option value="">All Cycles</option>';
     cycles.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;cycSel.appendChild(o);});
   }
-  /* timestamp */
+  /* Timestamp */
   var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var d=new Date(Date.now()+5.5*3600000);
-  document.getElementById('qaTsLbl').textContent='Last updated: '+
-    String(d.getUTCDate()).padStart(2,'0')+'-'+mo[d.getUTCMonth()]+'-'+String(d.getUTCFullYear()).slice(2)+
-    ' '+String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+
-    ' · '+QA.length+' records ('+fname+')';
-  document.getElementById('qaMain').style.display='block';
-  document.getElementById('qaEmpty').style.display='none';
-  /* Persist QA data so tab switches don't lose it */
-  try{localStorage.setItem('skyatc_qa',JSON.stringify(QA));
-  localStorage.setItem('skyatc_qa_ts',document.getElementById('qaTsLbl').textContent);}catch(e){}
+  var tsText='Last updated: '+String(d.getUTCDate()).padStart(2,'0')+'-'+mo[d.getUTCMonth()]+'-'+
+    String(d.getUTCFullYear()).slice(2)+' '+String(d.getUTCHours()).padStart(2,'0')+':'+
+    String(d.getUTCMinutes()).padStart(2,'0')+' · '+QA.length+' records ('+fname+')';
+  var tsLbl=document.getElementById('qaTsLbl');
+  if(tsLbl)tsLbl.textContent=tsText;
+  /* No qaMain/qaEmpty in new structure — panes are integration/uat */
+  /* Persist */
+  try{
+    localStorage.setItem('skyatc_qa',JSON.stringify(QA));
+    localStorage.setItem('skyatc_qa_ts',tsText);
+  }catch(e){}
+  /* Update Release Summary if on that tab */
+  var activeBtn=document.querySelector('.tab-btn.active');
+  if(activeBtn&&activeBtn.id==='tab-release')renderReleaseSummary();
+  /* Update release filter to match active QA tab */
+  var activeQaTab='integration';
+  var uatPane=document.getElementById('pane-uat');
+  if(uatPane&&uatPane.classList.contains('active'))activeQaTab='uat';
+  updateReleasesForType(activeQaTab);
   qaGo();
 }
 
 
 
+
+
+
+function renderReleaseSummary(){
+  var el=document.getElementById('relSummaryContent');
+  if(!el)return;
+  var releases=new Set();
+  if(D&&D.length)D.forEach(function(d){if(d.release)releases.add(d.release);});
+  if(QA&&QA.length)QA.forEach(function(d){if(d.release)releases.add(d.release);});
+  var relList=[...releases].sort();
+  if(!relList.length){
+    el.innerHTML='<div style="padding:40px 24px;text-align:center;color:#94a3b8;"><div style="font-size:36px;margin-bottom:12px;">&#128203;</div><div style="font-size:14px;">Upload Defects and/or QA extracts to see Release Summary</div></div>';
+    return;
+  }
+  function pctColor(v){return v===null?'#94a3b8':v>=80?'#065f46':v>=50?'#b45309':'#dc2626';}
+  function tile(label,val,color,sub){
+    return '<div style="text-align:center;padding:0 10px;border-right:1px solid #DDD6FE;">'+
+      '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:'+color+';margin-bottom:2px;white-space:nowrap;">'+label+'</div>'+
+      '<div style="font-size:18px;font-weight:700;color:'+color+';">'+(val===null||val===undefined?'—':val)+'</div>'+
+      (sub?'<div style="font-size:9px;color:#94a3b8;margin-top:1px;white-space:nowrap;">'+sub+'</div>':'')+
+      '</div>';
+  }
+  var html='';
+  relList.forEach(function(rel){
+    /* Defect metrics */
+    var dRows=D?D.filter(function(d){return d.release===rel;}):[];
+    var dTotal=dRows.length||null;
+    var dActive=dRows.filter(function(d){return EX.indexOf(d.status)<0;}).length||null;
+    var dFixed=dRows.filter(function(d){return GR.indexOf(d.status)>=0;}).length||null;
+    var dReopened=dRows.filter(function(d){return RE.indexOf(d.status)>=0;}).length||null;
+    var dClosed=dRows.filter(function(d){return EX.indexOf(d.status)>=0;}).length||null;
+    /* Integration */
+    var iRows=QA?QA.filter(function(d){return d.release===rel&&(d.testType||'').toLowerCase()==='integration';}):[];
+    var iTotal=iRows.length||null;
+    var iPass=iRows.filter(function(d){return d.status==='PASS';}).length;
+    var iFail=iRows.filter(function(d){return d.status==='FAIL';}).length;
+    var iBlocked=iRows.filter(function(d){return d.status==='BLOCKED';}).length;
+    var iExec=iPass+iFail+iBlocked;
+    var iExecPct=iTotal?Math.round(iExec/iRows.length*100):null;
+    var iPassRate=iExec>0?Math.round(iPass/iExec*100):null;
+    /* UAT */
+    var uRows=QA?QA.filter(function(d){return d.release===rel&&(d.testType||'').toLowerCase()==='uat';}):[];
+    var uTotal=uRows.length||null;
+    var uPass=uRows.filter(function(d){return d.status==='PASS';}).length;
+    var uFail=uRows.filter(function(d){return d.status==='FAIL';}).length;
+    var uBlocked=uRows.filter(function(d){return d.status==='BLOCKED';}).length;
+    var uExec=uPass+uFail+uBlocked;
+    var uExecPct=uTotal?Math.round(uExec/uRows.length*100):null;
+    var uPassRate=uExec>0?Math.round(uPass/uExec*100):null;
+
+    html+='<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:14px;">';
+    /* Release label */
+    html+='<div style="font-size:13px;font-weight:700;color:#4c1d95;margin-bottom:12px;display:flex;align-items:center;gap:8px;">'+
+      '<span style="background:#EDE9FE;color:#4c1d95;padding:3px 10px;border-radius:12px;font-size:12px;">'+rel+'</span>'+
+    '</div>';
+    /* Tiles row */
+    html+='<div style="display:flex;flex-wrap:wrap;gap:0;">';
+    /* Section label */
+    html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#6b7280;padding:0 10px 0 0;align-self:center;border-right:1px solid #DDD6FE;margin-right:0;white-space:nowrap;">&#128202; Defects</div>';
+    if(dTotal){
+      html+=tile('Total',dTotal,'#1e3a5f');
+      html+=tile('Active',dActive,'#5b21b6');
+      html+=tile('Fixed',dFixed,'#065f46');
+      html+=tile('Reopened',dReopened,'#b45309');
+      html+=tile('Closed/Rej',dClosed,'#dc2626');
+    } else {
+      html+='<div style="padding:0 12px;font-size:11px;color:#94a3b8;align-self:center;">No defect data</div>';
+    }
+    /* Divider */
+    html+='<div style="width:1px;background:#DDD6FE;margin:0 8px;"></div>';
+    html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#6b7280;padding:0 10px 0 0;align-self:center;border-right:1px solid #DDD6FE;white-space:nowrap;">&#128260; Integration</div>';
+    if(iTotal){
+      html+=tile('Total TCs',iTotal,'#1e3a5f');
+      html+=tile('Exec %',iExecPct!==null?iExecPct+'%':null,pctColor(iExecPct));
+      html+=tile('Pass Rate',iPassRate!==null?iPassRate+'%':null,pctColor(iPassRate));
+      html+=tile('Fail',iFail,'#dc2626');
+      html+=tile('Blocked',iBlocked,'#b45309');
+    } else {
+      html+='<div style="padding:0 12px;font-size:11px;color:#94a3b8;align-self:center;">No integration data</div>';
+    }
+    html+='<div style="width:1px;background:#DDD6FE;margin:0 8px;"></div>';
+    html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#6b7280;padding:0 10px 0 0;align-self:center;border-right:1px solid #DDD6FE;white-space:nowrap;">&#9989; UAT</div>';
+    if(uTotal){
+      html+=tile('Total TCs',uTotal,'#1e3a5f');
+      html+=tile('Exec %',uExecPct!==null?uExecPct+'%':null,pctColor(uExecPct));
+      html+=tile('Pass Rate',uPassRate!==null?uPassRate+'%':null,pctColor(uPassRate));
+      html+=tile('Fail',uFail,'#dc2626');
+      html+=tile('Blocked',uBlocked,'#b45309');
+    } else {
+      html+='<div style="padding:0 12px;font-size:11px;color:#94a3b8;align-self:center;">No UAT data</div>';
+    }
+    html+='</div></div>';
+  });
+  el.innerHTML=html;
+}
+
+
+var SP_SITE='https://ts.accenture.com/sites/APP-Learning';
+var SP_DEF_FOLDER='Pages/AMAP Dashboard/Defects';
+var SP_QA_FOLDER='Pages/AMAP Dashboard/QA';
+
+function spFetch(url){
+  return fetch(url,{headers:{'Accept':'application/json;odata=verbose'},credentials:'include'})
+    .then(function(r){if(!r.ok)throw new Error('SP '+r.status);return r.json();});
+}
+
+function spAutoLoad(){
+  var btn=document.getElementById('spRefreshBtn');
+  var st=document.getElementById('spStatus');
+  if(btn){btn.textContent='⏳ Loading...';btn.disabled=true;}
+  if(st)st.textContent='Fetching from SharePoint...';
+
+  var defP=fetch(SP_SITE+"/_api/web/GetFolderByServerRelativeUrl('"+
+    encodeURIComponent('/sites/APP-Learning/'+SP_DEF_FOLDER)+"')/Files"+
+    "?$select=Name,ServerRelativeUrl,TimeLastModified&$orderby=TimeLastModified desc",
+    {headers:{'Accept':'application/json;odata=verbose'},credentials:'include'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var files=data.d.results;
+      if(!files||!files.length)return 'none';
+      var latest=files[0];
+      return fetch(SP_SITE+"/_api/web/GetFileByServerRelativeUrl('"+
+        encodeURIComponent(latest.ServerRelativeUrl)+"')/$value",{credentials:'include'})
+        .then(function(r){return r.text();})
+        .then(function(csv){parseAndLoadDefects(csv,latest.Name);return latest.Name;});
+    });
+
+  var qaP=fetch(SP_SITE+"/_api/web/GetFolderByServerRelativeUrl('"+
+    encodeURIComponent('/sites/APP-Learning/'+SP_QA_FOLDER)+"')/Files"+
+    "?$select=Name,ServerRelativeUrl",
+    {headers:{'Accept':'application/json;odata=verbose'},credentials:'include'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var files=data.d.results;
+      if(!files||!files.length)return 0;
+      QA=[];
+      var pending=files.length;
+      return new Promise(function(resolve){
+        files.forEach(function(file){
+          fetch(SP_SITE+"/_api/web/GetFileByServerRelativeUrl('"+
+            encodeURIComponent(file.ServerRelativeUrl)+"')/$value",{credentials:'include'})
+            .then(function(r){return r.arrayBuffer();})
+            .then(function(buf){
+              try{
+                var wb=XLSX.read(new Uint8Array(buf),{type:'array'});
+                var ws=wb.Sheets[wb.SheetNames[0]];
+                var rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+                var _isUAT=/UAT/i.test(file.Name);
+                var _tt=_isUAT?'UAT':'Integration';
+                var _fn=file.Name.replace(/\.[^.]+$/,'');
+                var _prefixes=[/^Test_Execution_Report_/i,/^Test_Execution_/i,/^QA_Report_/i,/^Execution_/i];
+                var _rel=_fn;
+                for(var _pi=0;_pi<_prefixes.length;_pi++){var _s=_fn.replace(_prefixes[_pi],'');if(_s&&_s!==_fn){_rel=_s;break;}}
+                _rel=_rel.replace(/([Rr])(\d+)_(\d+)/g,'$1$2.$3').replace(/_/g,' ').trim();
+                var parsed=rows.map(function(r){return{
+                  folder:(r['Folder']||'').toString(),key:(r['Test Case Key']||'').toString(),
+                  status:((r['Status']||'').toString()).toUpperCase(),defects:(r['Linked Defects']||'').toString(),
+                  component:(r['Component']||'').toString(),label:(r['Label']||'').toString(),
+                  release:_rel,cycle:(r['Cycle']||'').toString(),testType:_tt
+                };});
+                if(_isUAT)parsed.forEach(function(row){var m=(row.folder||'').match(/^([\d\.]+)\s*-/);if(m)row.release='R'+m[1].trim();});
+                QA=QA.concat(parsed);
+              }catch(e){console.error('QA parse',file.Name,e);}
+              if(--pending===0)resolve(QA.length);
+            }).catch(function(){if(--pending===0)resolve(QA.length);});
+        });
+      });
+    });
+
+  Promise.all([defP,qaP]).then(function(){
+    var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var n=new Date(Date.now()+5.5*3600000);
+    var ts=n.getUTCDate().toString().padStart(2,'0')+'-'+mo[n.getUTCMonth()]+'-'+
+      String(n.getUTCFullYear()).slice(2)+' '+n.getUTCHours().toString().padStart(2,'0')+
+      ':'+n.getUTCMinutes().toString().padStart(2,'0');
+    if(st)st.textContent='Synced: '+ts;
+    if(btn){btn.textContent='🔄 Refresh Data';btn.disabled=false;}
+    var ql=document.getElementById('qaTsLbl');
+    if(ql)ql.textContent='Last updated: '+ts+' · '+QA.length+' QA records';
+    updateReleasesForType('integration');
+    qaGo();
+  }).catch(function(err){
+    console.error('SP load error:',err);
+    if(st)st.textContent='⚠️ SP load failed — use manual upload';
+    if(btn){btn.textContent='🔄 Refresh Data';btn.disabled=false;}
+  });
+}
+
+function parseAndLoadDefects(csv,fname){
+  var rows=parseCsv(csv);
+  if(!rows||!rows.length)return;
+  D=rows;buildArrays();
+  var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var n=new Date(Date.now()+5.5*3600000);
+  var ts='Last Updated: '+n.getUTCDate().toString().padStart(2,'0')+'-'+mo[n.getUTCMonth()]+'-'+
+    String(n.getUTCFullYear()).slice(2)+' '+n.getUTCHours().toString().padStart(2,'0')+
+    ':'+n.getUTCMinutes().toString().padStart(2,'0')+' · '+D.length+' records';
+  var tl=document.getElementById('tsLbl');if(tl)tl.textContent=ts;
+  var tl2=document.getElementById('tsLbl2');if(tl2)tl2.textContent=ts;
+  populateMsRelease();populateMsStatus();populateMsTeam();populateMsSeverity();populateMsKnown();
+  populateMsPcd();populateMsUpdated();buildArrays();rst();
+  try{localStorage.setItem('skyatc_data',JSON.stringify(D));localStorage.setItem('skyatc_ts',ts);}catch(e){}
+}
+
+function saveAndPublish(){
+  var html=document.documentElement.outerHTML;
+  var dJson=JSON.stringify(D);
+  var qaTs=document.getElementById('qaTsLbl')?document.getElementById('qaTsLbl').textContent:'';
+  var qaBlock='\nvar _bakedQA='+JSON.stringify(QA)+';\nvar _bakedQAts='+JSON.stringify(qaTs)+';\n';
+  html=html.replace(/(var D=\[[\s\S]*?\];)(\s*if\(typeof _bakedQA)/, 'var D='+dJson+';'+qaBlock+'$2');
+  var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var n=new Date(Date.now()+5.5*3600000);
+  var stamp=n.getUTCDate().toString().padStart(2,'0')+mo[n.getUTCMonth()]+
+    String(n.getUTCFullYear()).slice(2)+'_'+n.getUTCHours().toString().padStart(2,'0')+
+    n.getUTCMinutes().toString().padStart(2,'0');
+  var blob=new Blob([html],{type:'text/html'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='SKY_ATC_Dashboard_'+stamp+'.html';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  setTimeout(function(){alert('Downloaded! Upload to SharePoint to share with your team.');},300);
+}
 
 function qaRst(){
   var relSel=document.getElementById('qaRelSel');
@@ -3146,6 +3393,8 @@ function updateReleasesForType(typ){
 }
 
 function qaRenderForType(typ){
+  /* Only render if pane elements exist */
+  if(!document.getElementById('qaSb-'+typ))return;
   var rel=(document.getElementById('qaRelSel')||{}).value||'';
   var cyc=(document.getElementById('qaCycleSel')||{}).value||'';
   var data=QA.filter(function(d){
@@ -3416,6 +3665,7 @@ function qaRenderDefects(data,sfx){sfx=sfx||'integration';
   html+='</tbody></table></div>';
   el.innerHTML=html;
 }
+
 
 </script>
 </body>
