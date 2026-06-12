@@ -44,19 +44,18 @@ with open('index.html', 'r', encoding='utf-8') as f:
     html = f.read()
 
 # ── Bake defects data ─────────────────────────────────────────────────────────
-d_json = json.dumps(defects)
-html = re.sub(r'var D=\[[\s\S]*?\];', f'var D={d_json};', html)
+d_json = json.dumps(defects, ensure_ascii=False)
+html = re.sub(r'var D=\[[\s\S]*?\];', lambda m: f'var D={d_json};', html)
 
 # ── Bake QA data ──────────────────────────────────────────────────────────────
-qa_json = json.dumps(qa_rows)
-qa_ts_json = json.dumps(f'Auto-refreshed: {stamp} · {len(qa_rows)} QA records')
+qa_json = json.dumps(qa_rows, ensure_ascii=False)
+qa_ts_str = f'Auto-refreshed: {stamp} · {len(qa_rows)} QA records'
 
 if 'var _bakedQA=' in html:
-    html = re.sub(r'var _bakedQA=\[[\s\S]*?\];', f'var _bakedQA={qa_json};', html)
-    html = re.sub(r'var _bakedQAts=.*?;', f'var _bakedQAts={qa_ts_json};', html)
+    html = re.sub(r'var _bakedQA=\[[\s\S]*?\];', lambda m: f'var _bakedQA={qa_json};', html)
+    html = re.sub(r'var _bakedQAts=.*?;', lambda m: f"var _bakedQAts='{qa_ts_str}';", html)
 else:
-    # Insert before closing script tag
-    insert = f'\nvar _bakedQA={qa_json};\nvar _bakedQAts={qa_ts_json};\n'
+    insert = f"\nvar _bakedQA={qa_json};\nvar _bakedQAts='{qa_ts_str}';\n"
     html = html.replace('</script>', insert + '</script>', 1)
 
 # ── Update version stamp ──────────────────────────────────────────────────────
