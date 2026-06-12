@@ -6,7 +6,7 @@ IST = timezone(timedelta(hours=5, minutes=30))
 now = datetime.now(IST)
 stamp = now.strftime('%d-%b-%y %H:%M')
 
-# ── Read Defects ──────────────────────────────────────────────────────────────
+# Read Defects
 defect_files = sorted(glob.glob('data/defects/*.csv') + glob.glob('data/defects/*.CSV'))
 defects = []
 if defect_files:
@@ -17,7 +17,7 @@ if defect_files:
     defects = df.where(pd.notna(df), None).to_dict(orient='records')
     print(f"Loaded {len(defects)} defect rows")
 
-# ── Read QA files ─────────────────────────────────────────────────────────────
+# Read QA files
 qa_files = sorted(
     glob.glob('data/qa/*.csv') + glob.glob('data/qa/*.CSV') +
     glob.glob('data/qa/*.xlsx') + glob.glob('data/qa/*.XLSX')
@@ -33,37 +33,49 @@ for f in qa_files:
         df.columns = [c.strip().lower() for c in df.columns]
         rows = df.where(pd.notna(df), None).to_dict(orient='records')
         qa_rows.extend(rows)
-        print(f"  → {len(rows)} rows")
+        print(f"  -> {len(rows)} rows")
     except Exception as e:
-        print(f"  ⚠ Could not read {f}: {e}")
+        print(f"  WARNING: Could not read {f}: {e}")
 
 print(f"Total QA rows: {len(qa_rows)}")
 
-# ── Read current index.html ───────────────────────────────────────────────────
+# Read index.html
 with open('index.html', 'r', encoding='utf-8') as f:
     html = f.read()
 
-# ── Bake defects data ─────────────────────────────────────────────────────────
-d_json = json.dumps(defects, ensure_ascii=False)
-html = re.sub(r'var D=\[[\s\S]*?\];', lambda m: f'var D={d_json};', html)
+print(f"index.html size before bake: {len(html)} bytes")
 
-# ── Bake QA data ──────────────────────────────────────────────────────────────
+# Bake defects - replace var D=anything;
+d_json = json.dumps(defects, ensure_ascii=False)
+new_d = f'var D={d_json};'
+html, n = re.subn(r'var D=\[[\s\S]*?\];', new_d, html)
+print(f"Defects replacement count: {n}")
+if n == 0:
+    print("WARNING: var D pattern not found! Trying alternative...")
+    html = html.replace('var D=[];', new_d)
+
+# Bake QA data
 qa_json = json.dumps(qa_rows, ensure_ascii=False)
-qa_ts_str = f'Auto-refreshed: {stamp} · {len(qa_rows)} QA records'
+qa_ts_str = f'Auto-refreshed: {stamp} - {len(qa_rows)} QA records'
+new_qa = f'var _bakedQA={qa_json};'
+new_qa_ts = f"var _bakedQAts='{qa_ts_str}';"
 
 if 'var _bakedQA=' in html:
-    html = re.sub(r'var _bakedQA=\[[\s\S]*?\];', lambda m: f'var _bakedQA={qa_json};', html)
-    html = re.sub(r'var _bakedQAts=.*?;', lambda m: f"var _bakedQAts='{qa_ts_str}';", html)
+    html, n1 = re.subn(r'var _bakedQA=\[[\s\S]*?\];', new_qa, html)
+    html, n2 = re.subn(r'var _bakedQAts=.*?;', new_qa_ts, html)
+    print(f"QA replacement count: {n1}, {n2}")
 else:
-    insert = f"\nvar _bakedQA={qa_json};\nvar _bakedQAts='{qa_ts_str}';\n"
-    html = html.replace('</script>', insert + '</script>', 1)
+    print("Inserting _bakedQA for first time...")
+    insert = f'\n{new_qa}\n{new_qa_ts}\n'
+    html = html.replace('var PRODUCTION', insert + 'var PRODUCTION')
 
-# ── Update version stamp ──────────────────────────────────────────────────────
+# Update version stamp
 ver = now.strftime('v%Y.%m.%d.%H:%M')
-html = re.sub(r'v2026\.\d{2}\.\d{2}\.\d{2}[:\-]\d{2}', ver, html)
+html = re.sub(r'v\d{4}\.\d{2}\.\d{2}\.\d{2}[:\-]\d{2}', ver, html)
 
-# ── Write back ────────────────────────────────────────────────────────────────
+# Write back
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(html)
 
-print(f"✅ Dashboard baked successfully — {len(defects)} defects, {len(qa_rows)} QA rows, stamp: {ver}")
+print(f"index.html size after bake: {len(html)} bytes")
+print(f"Done! {len(defects)} defects, {len(qa_rows)} QA rows, stamp: {ver}")
