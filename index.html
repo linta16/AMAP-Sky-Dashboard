@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.12.09:34</title>
+<title>SKY ATC - Defect Dashboard v2026.06.12.09:44</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -163,7 +163,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.09:34</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.09:44</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -194,9 +194,9 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 
 <div class="tbar">
 
-  <button class="btn bx" id="btn-atcip" onclick="toggleAtcip()" style="font-size:11px;padding:5px 14px;border-radius:5px;font-weight:600;">ATCI/P</button>
-  <button class="btn bx" id="btn-prevwk" onclick="applyWeekFilter('prev')" style="font-size:11px;padding:5px 14px;border-radius:5px;">Prev Week</button>
-  <button class="btn bx" id="btn-currwk" onclick="applyWeekFilter('curr')" style="font-size:11px;padding:5px 14px;border-radius:5px;">Current Week</button>
+  <button class="btn bx" id="btn-atcip" onclick="toggleAtcip()" style="font-size:11px;padding:5px 14px;border-radius:5px;font-weight:600;background:#EDE9FE;color:#5b21b6;border:1px solid #DDD6FE;">ATCI/P</button>
+  <button class="btn bx" id="btn-prevwk" onclick="applyWeekFilter('prev')" style="font-size:11px;padding:5px 14px;border-radius:5px;background:#EDE9FE;color:#5b21b6;border:1px solid #DDD6FE;">Prev Week</button>
+  <button class="btn bx" id="btn-currwk" onclick="applyWeekFilter('curr')" style="font-size:11px;padding:5px 14px;border-radius:5px;background:#EDE9FE;color:#5b21b6;border:1px solid #DDD6FE;">Current Week</button>
 
   <div class="ms-wrap" id="wrap-fR">
     <button class="ms-btn" id="btn-fR" onclick="toggleMs('fR')">Release</button>
@@ -261,7 +261,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
     </div>
   </div>
 
-  <button class="btn bx" onclick="rst()">&#8635; Reset</button>
+  <button class="btn bx" onclick="rst()" title="Reset all filters" style="padding:5px 10px;font-size:16px;">&#8635;</button>
 </div>
 
 <div class="main">
@@ -1327,7 +1327,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.09:34.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.09:44.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
