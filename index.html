@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,shrink-to-fit=yes"/>
-<title>SKY ATC - Defect Dashboard v2026.06.12.09:59</title>
+<title>SKY ATC - Defect Dashboard v2026.06.12.10:05</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -68,8 +68,8 @@ body{max-width:100%;overflow-x:hidden;font-family:-apple-system,BlinkMacSystemFo
 .lmap-table tr:hover td{background:#fafaf9;}
 .lmap-input{width:100%;font-size:11px;padding:4px 7px;border:1px solid #DDD6FE;border-radius:4px;font-family:inherit;color:#1a1a2e;background:#fff;}
 .lmap-input:focus{outline:none;border-color:#7c3aed;}
-.tbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:8px 16px;display:flex;flex-wrap:nowrap;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;}
-.ms-wrap{position:relative;display:inline-block;}
+.tbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:8px 16px;display:flex;flex-wrap:nowrap;gap:8px;align-items:center;position:relative;z-index:100;overflow:visible;}
+.ms-wrap{position:relative;display:inline-block;overflow:visible;}
 .ms-btn{font-size:12px;padding:5px 26px 5px 10px;border:1px solid #cbd5e1;border-radius:5px;
   background:#fff;color:#1a1a2e;cursor:pointer;min-width:0;text-align:left;
   font-family:inherit;white-space:nowrap;position:relative;}
@@ -78,7 +78,7 @@ body{max-width:100%;overflow-x:hidden;font-family:-apple-system,BlinkMacSystemFo
 .ms-btn.has-sel{border-color:#5b21b6;color:#4c1d95;background:#F5F3FF;}
 .ms-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:200px;max-width:280px;
   background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.12);
-  z-index:500;padding:6px 0;max-height:280px;overflow-y:auto;}
+  z-index:9000;padding:6px 0;max-height:280px;overflow-y:auto;}
 .ms-dropdown.open{display:block;}
 .ms-option{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:#1a1a2e;}
 .ms-option:hover{background:#F5F3FF;}
@@ -163,7 +163,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
 <body>
 
 <div class="hdr">
-  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.09:59</span></h1>
+  <h1>&#128202; SKY ATC - Defect Dashboard <span style="font-size:10px;font-weight:400;opacity:.55;margin-left:6px;">v2026.06.12.10:05</span></h1>
   <div class="hdr-r">
     <span class="ts" id="tsLbl">Last Updated: 10-Jun-26 &nbsp;&middot;&nbsp; 91 records</span>
     <button class="btn bg" onclick="openModal()">&#128196; Send report</button>
@@ -199,7 +199,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
   <button class="btn bx" id="btn-currwk" onclick="applyWeekFilter('curr')" style="font-size:11px;padding:4px 10px;border-radius:5px;background:#EDE9FE;color:#5b21b6;border:1px solid #DDD6FE;white-space:nowrap;">Current Week</button>
 
   <div class="ms-wrap" id="wrap-fR">
-    <button class="ms-btn" id="btn-fR" onclick="toggleMs('fR')" style="min-width:0;width:90px;">Release</button>
+    <button class="ms-btn" id="btn-fR" onclick="toggleMs('fR')" style="min-width:0;width:85px;">Release</button>
     <div class="ms-dropdown" id="dd-fR">
       <div class="ms-option ms-all"><input type="checkbox" id="fR-all" checked onchange="msToggleAll('fR',this)"/><label for="fR-all">All releases</label></div>
       <div class="ms-divider"></div>
@@ -235,7 +235,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
   </div>
 
   <div class="ms-wrap" id="wrap-fK">
-    <button class="ms-btn" id="btn-fK" onclick="toggleMs('fK')" style="min-width:0;width:110px;">Known to client</button>
+    <button class="ms-btn" id="btn-fK" onclick="toggleMs('fK')" style="min-width:0;width:130px;overflow:hidden;text-overflow:ellipsis;">Known to client</button>
     <div class="ms-dropdown" id="dd-fK">
       <div class="ms-option ms-all"><input type="checkbox" id="fK-all" checked onchange="msToggleAll('fK',this)"/><label for="fK-all">All</label></div>
       <div class="ms-divider"></div>
@@ -261,7 +261,7 @@ td.gn{color:#0F6E56;font-weight:600;} td.rd{color:#A32D2D;font-weight:600;} td.m
     </div>
   </div>
 
-  <button class="btn bx" onclick="rst()" title="Reset all filters" style="padding:4px 8px;font-size:15px;margin-left:auto;flex-shrink:0;">&#8635;</button>
+  <button class="btn bx" onclick="rst()" title="Reset all filters" style="padding:4px 8px;font-size:15px;flex-shrink:0;">&#8635;</button>
 </div>
 
 <div class="main">
@@ -1327,7 +1327,7 @@ function dlReport(){
   var ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.09:59.html'; a.click();
+  a.download='SKY_ATC_Defect_Report_'+ts+'_v2026.06.12.10:05.html'; a.click();
 }
 
 /* ═══════════════════════════════════════════════════════════
